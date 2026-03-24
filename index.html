@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>芯漾生醫 — EC 成效報告 2026 Q1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #f7f8fa;
+  --bg2: #ffffff;
+  --bg3: #f0f2f5;
+  --border: #e4e7ec;
+  --border2: #c9cdd6;
+  --text: #111827;
+  --text2: #4b5563;
+  --text3: #9ca3af;
+  --accent: #2563eb;
+  --accent-light: #eff6ff;
+  --accent2: #7c3aed;
+  --green: #059669;
+  --green-light: #ecfdf5;
+  --red: #dc2626;
+  --red-light: #fef2f2;
+  --amber: #d97706;
+  --amber-light: #fffbeb;
+  --meta: #1877f2;
+  --meta-light: #eff6ff;
+  --sans: 'Noto Sans TC', 'Plus Jakarta Sans', sans-serif;
+  --display: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow: 0 4px 12px rgba(0,0,0,0.07);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh;}
+
+.header{background:#fff;border-bottom:1px solid var(--border);padding:36px 48px 28px;}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:0;}
+.header-badge{display:inline-block;background:var(--accent-light);color:var(--accent);font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:6px;margin-bottom:10px;}
+.header-title{font-family:var(--display);font-size:clamp(20px,2.5vw,30px);font-weight:800;line-height:1.15;letter-spacing:-.02em;}
+.header-title span{color:var(--accent);}
+.header-sub{color:var(--text3);font-size:12px;margin-top:5px;}
+.header-meta{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg3);flex-shrink:0;}
+.hm-item{padding:10px 16px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;}
+.hm-item:last-child{border-right:none;}
+.hm-label{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;}
+.hm-value{font-family:var(--mono);font-size:12px;color:var(--text2);font-weight:500;}
+
+.nav{position:sticky;top:0;z-index:100;background:#fff;border-bottom:1px solid var(--border);padding:0 48px;display:flex;gap:0;overflow-x:auto;box-shadow:var(--shadow-sm);}
+.nav-item{padding:13px 18px;font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;user-select:none;}
+.nav-item:hover{color:var(--text2);}
+.nav-item.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.main{padding:36px 48px;max-width:1400px;margin:0 auto;}
+.section{display:none;}
+.section.active{display:block;}
+
+.sec-header{margin-bottom:24px;}
+.sec-badge{display:inline-block;background:var(--bg3);color:var(--text3);font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.12em;padding:3px 8px;border-radius:4px;margin-bottom:6px;}
+.sec-title{font-family:var(--display);font-size:19px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.sec-desc{color:var(--text3);font-size:13px;}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:24px;}
+.kpi-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
+.kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;}
+.kpi-card.blue::after{background:var(--accent);}
+.kpi-card.green::after{background:var(--green);}
+.kpi-card.amber::after{background:var(--amber);}
+.kpi-card.purple::after{background:var(--accent2);}
+.kpi-card.meta::after{background:var(--meta);}
+.kpi-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;}
+.kpi-value{font-family:var(--display);font-size:24px;font-weight:700;color:var(--text);line-height:1;margin-bottom:7px;}
+.kpi-delta{font-size:12px;font-weight:500;}
+.kpi-delta.up{color:var(--green);}
+.kpi-delta.dn{color:var(--red);}
+.kpi-delta.na{color:var(--text3);}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 22px;box-shadow:var(--shadow-sm);margin-bottom:14px;}
+.card-title{font-family:var(--display);font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.card-sub{font-size:11px;color:var(--text3);margin-bottom:16px;font-family:var(--mono);}
+.chart-wrap{position:relative;}
+
+.table-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:14px;}
+.table-hd{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.table-hd-title{font-family:var(--display);font-size:14px;font-weight:600;}
+.table-hd-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl thead th{text-align:left;padding:9px 13px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg3);white-space:nowrap;}
+.tbl tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+.tbl tbody tr:last-child{border-bottom:none;}
+.tbl tbody tr:hover{background:var(--bg);}
+.tbl td{padding:9px 13px;color:var(--text);white-space:nowrap;}
+.tbl .r{text-align:right;font-family:var(--mono);font-size:12px;}
+.tbl .hi{color:var(--green);font-weight:600;}
+.tbl .lo{color:var(--red);font-weight:600;}
+.tbl .wa{color:var(--amber);font-weight:600;}
+
+.badge{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:4px;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle;margin-left:4px;font-weight:500;}
+.b-meta{background:var(--meta-light);color:var(--meta);border:1px solid #bfdbfe;}
+.b-good{background:var(--green-light);color:var(--green);border:1px solid #a7f3d0;}
+.b-bad{background:var(--red-light);color:var(--red);border:1px solid #fecaca;}
+.b-warn{background:var(--amber-light);color:var(--amber);border:1px solid #fde68a;}
+.b-blue{background:var(--accent-light);color:var(--accent);border:1px solid #bfdbfe;}
+
+.diag-list{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+.diag-item{background:#fff;border:1px solid var(--border);border-radius:10px;padding:15px 17px 15px 19px;display:flex;gap:13px;align-items:flex-start;box-shadow:var(--shadow-sm);transition:box-shadow .15s;}
+.diag-item:hover{box-shadow:var(--shadow);}
+.diag-item.bad{border-left:3px solid var(--red);}
+.diag-item.warn{border-left:3px solid var(--amber);}
+.diag-item.good{border-left:3px solid var(--green);}
+.diag-icon{font-size:14px;flex-shrink:0;margin-top:2px;}
+.diag-title{font-family:var(--display);font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.diag-tags{margin-bottom:5px;}
+.diag-tag{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:4px;background:var(--bg3);color:var(--text3);border:1px solid var(--border);margin-right:4px;letter-spacing:.04em;text-transform:uppercase;}
+.diag-body{font-size:13px;color:var(--text2);line-height:1.65;}
+.diag-body strong{color:var(--text);font-weight:600;}
+.diag-body code{font-family:var(--mono);font-size:11px;background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--accent);}
+
+.funnel-step{display:flex;align-items:center;gap:12px;margin-bottom:9px;}
+.funnel-lbl{font-size:12px;font-weight:500;color:var(--text2);width:88px;flex-shrink:0;}
+.funnel-track{flex:1;background:var(--bg3);border-radius:6px;height:30px;overflow:hidden;}
+.funnel-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 11px;transition:width .6s ease;}
+.funnel-fill-text{font-family:var(--mono);font-size:11px;font-weight:500;color:#fff;}
+.funnel-num{font-family:var(--mono);font-size:12px;color:var(--text2);width:62px;text-align:right;flex-shrink:0;}
+.funnel-rate{font-family:var(--mono);font-size:11px;color:var(--text3);width:52px;text-align:right;flex-shrink:0;}
+
+.month-tabs{display:flex;gap:6px;margin-bottom:16px;}
+.month-tab{padding:5px 14px;font-size:12px;font-weight:500;border:1px solid var(--border);border-radius:7px;cursor:pointer;color:var(--text3);background:#fff;transition:all .15s;}
+.month-tab:hover{border-color:var(--border2);color:var(--text2);}
+.month-tab.active{color:var(--accent);border-color:var(--accent);background:var(--accent-light);}
+
+.eff-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.eff-label{font-size:12px;font-weight:500;color:var(--text);width:162px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.eff-col{flex:1;display:flex;flex-direction:column;gap:3px;}
+.eff-row2{display:flex;align-items:center;gap:6px;}
+.eff-track{flex:1;background:var(--bg3);border-radius:3px;height:7px;overflow:hidden;}
+.eff-fill{height:7px;border-radius:3px;}
+.eff-pct{font-family:var(--mono);font-size:10px;color:var(--text3);width:36px;}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);font-family:var(--mono);}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+.insight-box{display:flex;gap:10px;align-items:flex-start;background:var(--accent-light);border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.6;}
+
+.footer{margin-top:56px;padding:22px 48px;border-top:1px solid var(--border);background:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.footer-note{font-family:var(--mono);font-size:10px;color:var(--text3);}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.section.active .kpi-card{animation:fadeIn .2s ease both;}
+.section.active .kpi-card:nth-child(1){animation-delay:.03s;}
+.section.active .kpi-card:nth-child(2){animation-delay:.06s;}
+.section.active .kpi-card:nth-child(3){animation-delay:.09s;}
+.section.active .kpi-card:nth-child(4){animation-delay:.12s;}
+.section.active .kpi-card:nth-child(5){animation-delay:.15s;}
+.section.active .kpi-card:nth-child(6){animation-delay:.18s;}
+
+@media(max-width:768px){
+  .header,.main,.nav,.footer{padding-left:20px;padding-right:20px;}
+  .grid-2,.grid-3{grid-template-columns:1fr;}
+  .header-meta{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-badge">EC Performance Report · 2026 Q1</div>
+      <h1 class="header-title">芯漾生醫 <span>電商成效分析報告</span></h1>
+      <p class="header-sub">資料來源：Google Analytics 4 ／ Windsor.ai ／ 分析期間 2026/01/01 – 2026/03/23</p>
+    </div>
+    <div class="header-meta">
+      <div class="hm-item"><span class="hm-label">Account</span><span class="hm-value">芯漾生醫購物網</span></div>
+      <div class="hm-item"><span class="hm-label">Platform</span><span class="hm-value">GA4 / Cyberbiz</span></div>
+      <div class="hm-item"><span class="hm-label">Generated</span><span class="hm-value">2026-03-24</span></div>
+      <div class="hm-item"><span class="hm-label">Note</span><span class="hm-value">不含廣告花費</span></div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-item active" onclick="showSection('overview',this)">01 整體總覽</div>
+  <div class="nav-item" onclick="showSection('funnel',this)">02 轉換漏斗</div>
+  <div class="nav-item" onclick="showSection('sources',this)">03 來源媒介</div>
+  <div class="nav-item" onclick="showSection('meta',this)">04 Meta 分析</div>
+  <div class="nav-item" onclick="showSection('diagnosis',this)">05 問題診斷</div>
+</nav>
+
+<div class="main">
+
+<!-- 01 OVERVIEW -->
+<section class="section active" id="s-overview">
+  <div class="sec-header">
+    <div class="sec-badge">Section 01</div>
+    <div class="sec-title">整體電商成效總覽</div>
+    <div class="sec-desc">2026 年 1–3 月三個月累計與月度趨勢</div>
+  </div>
+  <div class="kpi-grid" id="kpi-main"></div>
+  <div class="grid-2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-title">月度營收趨勢</div>
+      <div class="card-sub">Purchase Revenue (NTD)</div>
+      <div class="chart-wrap" style="height:210px"><canvas id="c-rev"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">月度訂單數</div>
+      <div class="card-sub">Transactions</div>
+      <div class="chart-wrap" style="height:210px"><canvas id="c-txn"></canvas></div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">月度 Sessions</div>
+      <div class="card-sub">總訪客工作階段數</div>
+      <div class="chart-wrap" style="height:210px"><canvas id="c-sess"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">月度整體轉換率</div>
+      <div class="card-sub">Sessions → Purchase (%)</div>
+      <div class="chart-wrap" style="height:210px"><canvas id="c-cvr"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 FUNNEL -->
+<section class="section" id="s-funnel">
+  <div class="sec-header">
+    <div class="sec-badge">Section 02</div>
+    <div class="sec-title">轉換漏斗分析</div>
+    <div class="sec-desc">Sessions → 加入購物車 → 結帳 → 完成訂單</div>
+  </div>
+  <div class="month-tabs">
+    <button class="month-tab active" onclick="showFunnel('all',this)">全期合計</button>
+    <button class="month-tab" onclick="showFunnel('01',this)">1月</button>
+    <button class="month-tab" onclick="showFunnel('02',this)">2月</button>
+    <button class="month-tab" onclick="showFunnel('03',this)">3月</button>
+  </div>
+  <div class="card">
+    <div class="card-title">漏斗各階段轉換</div>
+    <div class="card-sub">括號內為上一步驟到此步驟的轉換率</div>
+    <div id="funnel-viz" style="margin-top:4px"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">月度漏斗比較</div>
+    <div class="card-sub">各步驟絕對數量</div>
+    <div class="chart-wrap" style="height:240px"><canvas id="c-funnel"></canvas></div>
+  </div>
+  <div class="table-card">
+    <div class="table-hd">
+      <div><div class="table-hd-title">漏斗轉換率明細</div><div class="table-hd-sub">各月轉換效率拆解</div></div>
+    </div>
+    <table class="tbl">
+      <thead><tr>
+        <th>月份</th><th class="r">Sessions</th><th class="r">加入購物車</th>
+        <th class="r">到結帳</th><th class="r">完成訂單</th>
+        <th class="r">訪客→購買</th><th class="r">購物車→訂單</th><th class="r">客單價</th>
+      </tr></thead>
+      <tbody id="funnel-tbl"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 03 SOURCES -->
+<section class="section" id="s-sources">
+  <div class="sec-header">
+    <div class="sec-badge">Section 03</div>
+    <div class="sec-title">來源 / 媒介分析</div>
+    <div class="sec-desc">所有流量來源的效率對比，3個月累計</div>
+  </div>
+  <div class="card">
+    <div class="card-title">各來源效率對比：營收佔比 vs Sessions 佔比</div>
+    <div class="card-sub">綠色 = 營收貢獻 ／ 藍色 = 流量佔比 ／ 營收 > 流量 = 高效來源</div>
+    <div id="eff-bars-main" style="margin-top:12px"></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-title">Sessions 來源分布</div>
+      <div class="card-sub">Top 8 來源佔比</div>
+      <div class="chart-wrap" style="height:190px"><canvas id="c-src-sess"></canvas></div>
+      <div class="legend" id="lg-sess"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">營收來源分布</div>
+      <div class="card-sub">Top 8 來源佔比</div>
+      <div class="chart-wrap" style="height:190px"><canvas id="c-src-rev"></canvas></div>
+      <div class="legend" id="lg-rev"></div>
+    </div>
+  </div>
+  <div class="table-card">
+    <div class="table-hd">
+      <div><div class="table-hd-title">來源媒介完整明細</div><div class="table-hd-sub">3個月累計，依營收排序，Top 25</div></div>
+    </div>
+    <table class="tbl">
+      <thead><tr>
+        <th>來源</th><th>媒介</th>
+        <th class="r">Sessions</th><th class="r">營收 (NTD)</th><th class="r">訂單</th>
+        <th class="r">客單價</th><th class="r">轉換率</th><th class="r">平均停留</th>
+      </tr></thead>
+      <tbody id="src-tbl"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 04 META -->
+<section class="section" id="s-meta">
+  <div class="sec-header">
+    <div class="sec-badge">Section 04</div>
+    <div class="sec-title">Meta 廣告深度分析</div>
+    <div class="sec-desc">Facebook / Instagram 所有來源整合，3個月比較</div>
+  </div>
+  <div class="insight-box">
+    <span style="font-size:14px;flex-shrink:0;margin-top:1px">💡</span>
+    <span>Meta 廣告因 UTM 命名不一致被切割成多個來源（<code style="font-family:DM Mono,monospace;font-size:11px;background:#dbeafe;padding:1px 5px;border-radius:3px;color:#1d4ed8">fb/paid</code>、<code style="font-family:DM Mono,monospace;font-size:11px;background:#dbeafe;padding:1px 5px;border-radius:3px;color:#1d4ed8">FB/cpm</code>、<code style="font-family:DM Mono,monospace;font-size:11px;background:#dbeafe;padding:1px 5px;border-radius:3px;color:#1d4ed8">fb/traffic</code>、<code style="font-family:DM Mono,monospace;font-size:11px;background:#dbeafe;padding:1px 5px;border-radius:3px;color:#1d4ed8">facebook/CPC</code>），下方已整合所有 Meta 相關來源一併呈現。</span>
+  </div>
+  <div class="kpi-grid" id="kpi-meta"></div>
+  <div class="card">
+    <div class="card-title">Meta 各來源 Sessions 月趨勢</div>
+    <div class="card-sub">注意 fb/traffic 為流量型廣告，Sessions 高但零轉換</div>
+    <div class="chart-wrap" style="height:240px"><canvas id="c-meta-trend"></canvas></div>
+    <div class="legend" id="lg-meta"></div>
+  </div>
+  <div class="table-card">
+    <div class="table-hd">
+      <div><div class="table-hd-title">Meta 來源月度比較</div><div class="table-hd-sub">每個 Meta 來源按月拆分</div></div>
+    </div>
+    <table class="tbl">
+      <thead><tr>
+        <th>來源 / 媒介</th>
+        <th class="r">1月 Sess</th><th class="r">1月 Rev</th><th class="r">1月 訂單</th>
+        <th class="r">2月 Sess</th><th class="r">2月 Rev</th><th class="r">2月 訂單</th>
+        <th class="r">3月 Sess</th><th class="r">3月 Rev</th><th class="r">3月 訂單</th>
+        <th class="r">CVR</th>
+      </tr></thead>
+      <tbody id="meta-tbl"></tbody>
+    </table>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">Meta 各來源效率：轉換率 vs 客單價</div>
+    <div class="card-sub">泡泡大小 = Sessions 量 ／ 右上角 = 高轉換 + 高客單 = 最優來源</div>
+    <div class="chart-wrap" style="height:260px"><canvas id="c-meta-bubble"></canvas></div>
+  </div>
+</section>
+
+<!-- 05 DIAGNOSIS -->
+<section class="section" id="s-diagnosis">
+  <div class="sec-header">
+    <div class="sec-badge">Section 05</div>
+    <div class="sec-title">問題診斷與行動建議</div>
+    <div class="sec-desc">基於數據的優先行動清單</div>
+  </div>
+  <div style="margin-bottom:10px;display:flex;align-items:center;gap:8px">
+    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--red)"></span>
+    <span style="font-size:12px;font-weight:600;color:var(--text2)">立即處理 — P0 / P1</span>
+  </div>
+  <div class="diag-list" id="diag-bad"></div>
+  <div style="margin:18px 0 10px;display:flex;align-items:center;gap:8px">
+    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--amber)"></span>
+    <span style="font-size:12px;font-weight:600;color:var(--text2)">持續追蹤</span>
+  </div>
+  <div class="diag-list" id="diag-warn"></div>
+  <div style="margin:18px 0 10px;display:flex;align-items:center;gap:8px">
+    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green)"></span>
+    <span style="font-size:12px;font-weight:600;color:var(--text2)">優勢放大</span>
+  </div>
+  <div class="diag-list" id="diag-good"></div>
+</section>
+
+</div>
+
+<div class="footer">
+  <div class="footer-note">芯漾生醫購物網 ／ EC 成效報告 2026 Q1 ／ Powered by GA4 + Windsor.ai</div>
+  <div class="footer-note">資料截至 2026-03-23 ／ 不含廣告花費（GA4 限制）</div>
+</div>
+
+<script>
+const RAW=[
+  {m:"01",src:"fb",med:"paid",sess:2887,rev:64109,txn:27,cart:158,co:198,dur:158.5},
+  {m:"02",src:"fb",med:"paid",sess:2225,rev:39114,txn:20,cart:170,co:224,dur:123.4},
+  {m:"03",src:"fb",med:"paid",sess:1619,rev:44433,txn:24,cart:106,co:140,dur:123.1},
+  {m:"01",src:"fb-drchen",med:"paid",sess:685,rev:35223,txn:15,cart:113,co:135,dur:152.8},
+  {m:"02",src:"fb-drchen",med:"paid",sess:752,rev:25299,txn:11,cart:80,co:112,dur:122.7},
+  {m:"03",src:"fb-drchen",med:"paid",sess:435,rev:26535,txn:14,cart:59,co:81,dur:134.1},
+  {m:"01",src:"FB",med:"cpm",sess:312,rev:8517,txn:4,cart:53,co:44,dur:107.1},
+  {m:"02",src:"FB",med:"cpm",sess:290,rev:11666,txn:6,cart:22,co:40,dur:152.3},
+  {m:"03",src:"FB",med:"cpm",sess:262,rev:4381,txn:4,cart:29,co:32,dur:148.2},
+  {m:"01",src:"m.facebook.com",med:"referral",sess:293,rev:22903,txn:11,cart:20,co:48,dur:122.4},
+  {m:"02",src:"m.facebook.com",med:"referral",sess:194,rev:9301,txn:7,cart:23,co:30,dur:126.5},
+  {m:"03",src:"m.facebook.com",med:"referral",sess:173,rev:14977,txn:4,cart:17,co:24,dur:132.5},
+  {m:"01",src:"l.facebook.com",med:"referral",sess:78,rev:579,txn:1,cart:11,co:16,dur:221.4},
+  {m:"02",src:"l.facebook.com",med:"referral",sess:59,rev:1085,txn:1,cart:10,co:9,dur:302.7},
+  {m:"03",src:"l.facebook.com",med:"referral",sess:61,rev:1560,txn:1,cart:5,co:10,dur:170.0},
+  {m:"01",src:"facebook.com",med:"referral",sess:90,rev:0,txn:0,cart:0,co:0,dur:28.7},
+  {m:"02",src:"facebook.com",med:"referral",sess:35,rev:0,txn:0,cart:0,co:0,dur:14.6},
+  {m:"03",src:"facebook.com",med:"referral",sess:25,rev:0,txn:0,cart:0,co:0,dur:13.7},
+  {m:"01",src:"lm.facebook.com",med:"referral",sess:12,rev:3121,txn:2,cart:4,co:7,dur:442.3},
+  {m:"02",src:"lm.facebook.com",med:"referral",sess:24,rev:3497,txn:1,cart:2,co:11,dur:339.4},
+  {m:"03",src:"lm.facebook.com",med:"referral",sess:8,rev:3272,txn:2,cart:3,co:4,dur:252.2},
+  {m:"01",src:"ig",med:"paid",sess:23,rev:1549,txn:1,cart:13,co:10,dur:121.4},
+  {m:"02",src:"ig",med:"paid",sess:19,rev:0,txn:0,cart:0,co:0,dur:33.8},
+  {m:"03",src:"ig",med:"paid",sess:19,rev:1567,txn:1,cart:2,co:4,dur:117.7},
+  {m:"01",src:"FB",med:"cpc",sess:8,rev:0,txn:0,cart:1,co:2,dur:73.2},
+  {m:"02",src:"FB",med:"cpc",sess:9,rev:0,txn:0,cart:0,co:0,dur:13.1},
+  {m:"03",src:"FB",med:"cpc",sess:35,rev:0,txn:0,cart:2,co:4,dur:70.8},
+  {m:"01",src:"facebook",med:"CPC",sess:41,rev:0,txn:0,cart:0,co:0,dur:14.9},
+  {m:"02",src:"facebook",med:"CPC",sess:12,rev:0,txn:0,cart:0,co:0,dur:19.3},
+  {m:"03",src:"facebook",med:"CPC",sess:10,rev:0,txn:0,cart:0,co:0,dur:15.2},
+  {m:"02",src:"fb",med:"traffic",sess:1625,rev:0,txn:0,cart:0,co:0,dur:16.5},
+  {m:"03",src:"fb",med:"traffic",sess:1593,rev:0,txn:0,cart:0,co:0,dur:24.9},
+  {m:"01",src:"google",med:"cpc",sess:1087,rev:87625,txn:29,cart:159,co:180,dur:221.3},
+  {m:"02",src:"google",med:"cpc",sess:1200,rev:61203,txn:28,cart:93,co:133,dur:195.4},
+  {m:"03",src:"google",med:"cpc",sess:1263,rev:88646,txn:33,cart:158,co:208,dur:212.1},
+  {m:"01",src:"(direct)",med:"(none)",sess:1127,rev:68838,txn:26,cart:122,co:185,dur:157.6},
+  {m:"02",src:"(direct)",med:"(none)",sess:870,rev:47980,txn:22,cart:127,co:167,dur:176.6},
+  {m:"03",src:"(direct)",med:"(none)",sess:1072,rev:85347,txn:31,cart:169,co:194,dur:149.7},
+  {m:"01",src:"google",med:"organic",sess:1959,rev:22351,txn:6,cart:33,co:37,dur:142.4},
+  {m:"02",src:"google",med:"organic",sess:1689,rev:13458,txn:4,cart:26,co:22,dur:120.2},
+  {m:"03",src:"google",med:"organic",sess:1861,rev:7153,txn:4,cart:39,co:53,dur:147.5},
+  {m:"01",src:"Cyberbiz.Game",med:"Prize",sess:123,rev:36990,txn:16,cart:49,co:106,dur:375.1},
+  {m:"02",src:"Cyberbiz.Game",med:"Prize",sess:144,rev:51496,txn:19,cart:45,co:81,dur:350.4},
+  {m:"03",src:"Cyberbiz.Game",med:"Prize",sess:142,rev:44172,txn:15,cart:70,co:96,dur:326.5},
+  {m:"01",src:"emap.pcsc.com.tw",med:"referral",sess:56,rev:17880,txn:6,cart:35,co:50,dur:271.9},
+  {m:"02",src:"emap.pcsc.com.tw",med:"referral",sess:55,rev:17049,txn:9,cart:18,co:23,dur:322.0},
+  {m:"03",src:"emap.pcsc.com.tw",med:"referral",sess:67,rev:10354,txn:5,cart:11,co:20,dur:162.9},
+  {m:"01",src:"(not set)",med:"(not set)",sess:211,rev:20103,txn:7,cart:24,co:51,dur:129.9},
+  {m:"02",src:"(not set)",med:"(not set)",sess:248,rev:8679,txn:4,cart:16,co:28,dur:110.9},
+  {m:"03",src:"(not set)",med:"(not set)",sess:210,rev:8981,txn:5,cart:17,co:43,dur:147.7},
+  {m:"01",src:"Cyberbiz.eDM",med:"Email",sess:34,rev:0,txn:0,cart:0,co:0,dur:387.9},
+  {m:"02",src:"Cyberbiz.eDM",med:"Email",sess:36,rev:4895,txn:1,cart:14,co:5,dur:156.0},
+  {m:"03",src:"Cyberbiz.eDM",med:"Email",sess:59,rev:1989,txn:1,cart:2,co:4,dur:387.7},
+  {m:"01",src:"mfme.map.com.tw",med:"referral",sess:23,rev:13399,txn:3,cart:7,co:17,dur:239.5},
+  {m:"02",src:"mfme.map.com.tw",med:"referral",sess:28,rev:12170,txn:4,cart:3,co:10,dur:229.1},
+  {m:"03",src:"mfme.map.com.tw",med:"referral",sess:45,rev:7518,txn:2,cart:1,co:5,dur:133.1},
+  {m:"01",src:"cyberbizpay.com",med:"referral",sess:60,rev:7323,txn:3,cart:21,co:29,dur:240.8},
+  {m:"02",src:"cyberbizpay.com",med:"referral",sess:60,rev:22700,txn:5,cart:28,co:26,dur:302.5},
+  {m:"03",src:"cyberbizpay.com",med:"referral",sess:25,rev:13358,txn:6,cart:8,co:11,dur:344.2},
+];
+
+const MONTHS=['01','02','03'];
+const ML={'01':'1月','02':'2月','03':'3月'};
+const PAL=['#2563eb','#7c3aed','#059669','#d97706','#dc2626','#0891b2','#db2777','#65a30d','#9333ea','#0284c7'];
+const isMeta=r=>['fb','fb-drchen','FB','m.facebook.com','l.facebook.com','facebook.com','lm.facebook.com','facebook','ig'].includes(r.src);
+
+function sumF(a,k){return a.reduce((s,r)=>s+(r[k]||0),0);}
+function fmtK(v){return '$'+(v/1000).toFixed(0)+'K';}
+function pctD(a,b){if(!a||!b)return{cls:'na',str:'—'};const p=((b-a)/a*100).toFixed(0);return{cls:p>=0?'up':'dn',str:(p>=0?'▲':'▼')+Math.abs(p)+'%'};}
+
+const smMap={};
+RAW.forEach(r=>{
+  const k=r.src+'|||'+r.med;
+  if(!smMap[k]) smMap[k]={src:r.src,med:r.med,sess:0,rev:0,txn:0,cart:0,co:0,durs:[],byM:{}};
+  smMap[k].sess+=r.sess;smMap[k].rev+=r.rev;smMap[k].txn+=r.txn;smMap[k].cart+=r.cart;smMap[k].co+=r.co;
+  if(r.sess>0) smMap[k].durs.push(r.dur);
+  if(!smMap[k].byM[r.m]) smMap[k].byM[r.m]={sess:0,rev:0,txn:0};
+  smMap[k].byM[r.m].sess+=r.sess;smMap[k].byM[r.m].rev+=r.rev;smMap[k].byM[r.m].txn+=r.txn;
+});
+const SM=Object.values(smMap).sort((a,b)=>b.rev-a.rev);
+const totalRev=sumF(SM,'rev'),totalSess=sumF(SM,'sess');
+
+const monthly=MONTHS.map(m=>{
+  const rows=RAW.filter(r=>r.m===m);
+  const sess=sumF(rows,'sess'),rev=sumF(rows,'rev'),txn=sumF(rows,'txn'),cart=sumF(rows,'cart'),co=sumF(rows,'co');
+  return{m,sess,rev,txn,cart,co,aov:txn?Math.round(rev/txn):0,cvr:sess?(txn/sess*100).toFixed(2):0};
+});
+const T={rev:sumF(monthly,'rev'),txn:sumF(monthly,'txn'),sess:sumF(monthly,'sess'),cart:sumF(monthly,'cart'),co:sumF(monthly,'co')};
+T.aov=Math.round(T.rev/T.txn);T.cvr=(T.txn/T.sess*100).toFixed(2);
+
+const GC='rgba(0,0,0,0.05)',TC='#9ca3af';
+const baseOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+  scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11,family:'DM Mono'}}},
+          y:{grid:{color:GC},border:{dash:[3,3]},ticks:{color:TC,font:{size:11,family:'DM Mono'}}}}};
+const BC=['#2563eb','#7c3aed','#059669'];
+
+function buildOverview(){
+  const kpis=[
+    {l:'累計營收',v:fmtK(T.rev),d:pctD(monthly[0].rev,monthly[2].rev),sub:'3月 vs 1月',c:'blue'},
+    {l:'累計訂單數',v:T.txn,d:pctD(monthly[0].txn,monthly[2].txn),sub:'3月 vs 1月',c:'green'},
+    {l:'平均客單價',v:'$'+T.aov.toLocaleString(),d:pctD(monthly[0].aov,monthly[2].aov),sub:'3月 $'+monthly[2].aov.toLocaleString(),c:'amber'},
+    {l:'整體轉換率',v:T.cvr+'%',d:pctD(+monthly[0].cvr,+monthly[2].cvr),sub:'3月 '+monthly[2].cvr+'%',c:'purple'},
+    {l:'累計 Sessions',v:T.sess.toLocaleString(),d:pctD(monthly[0].sess,monthly[2].sess),sub:'3月 vs 1月',c:'blue'},
+    {l:'購物車→訂單',v:(T.txn/T.cart*100).toFixed(1)+'%',d:{cls:'na',str:''},sub:'全期平均',c:'green'},
+  ];
+  document.getElementById('kpi-main').innerHTML=kpis.map(k=>`
+    <div class="kpi-card ${k.c}">
+      <div class="kpi-label">${k.l}</div>
+      <div class="kpi-value">${k.v}</div>
+      <div class="kpi-delta ${k.d.cls}">${k.d.str}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('');
+  const lb=['1月','2月','3月'],br=5;
+  new Chart('c-rev',{type:'bar',data:{labels:lb,datasets:[{data:monthly.map(r=>r.rev),backgroundColor:BC,borderRadius:br}]},
+    options:{...baseOpts,scales:{...baseOpts.scales,y:{...baseOpts.scales.y,ticks:{...baseOpts.scales.y.ticks,callback:v=>'$'+(v/1000).toFixed(0)+'K'}}}}});
+  new Chart('c-txn',{type:'bar',data:{labels:lb,datasets:[{data:monthly.map(r=>r.txn),backgroundColor:BC,borderRadius:br}]},options:baseOpts});
+  new Chart('c-sess',{type:'bar',data:{labels:lb,datasets:[{data:monthly.map(r=>r.sess),backgroundColor:BC,borderRadius:br}]},options:baseOpts});
+  new Chart('c-cvr',{type:'bar',data:{labels:lb,datasets:[{data:monthly.map(r=>+r.cvr),backgroundColor:BC,borderRadius:br}]},
+    options:{...baseOpts,scales:{...baseOpts.scales,y:{...baseOpts.scales.y,ticks:{...baseOpts.scales.y.ticks,callback:v=>v+'%'}}}}});
+}
+
+const FC=['#2563eb','#7c3aed','#059669','#d97706'];
+function buildFunnel(){
+  new Chart('c-funnel',{type:'bar',data:{labels:['1月','2月','3月'],datasets:[
+    {label:'Sessions',data:monthly.map(r=>r.sess),backgroundColor:'#bfdbfe',borderRadius:4},
+    {label:'加入購物車',data:monthly.map(r=>r.cart),backgroundColor:'#2563eb',borderRadius:4},
+    {label:'結帳',data:monthly.map(r=>r.co),backgroundColor:'#7c3aed',borderRadius:4},
+    {label:'訂單',data:monthly.map(r=>r.txn),backgroundColor:'#059669',borderRadius:4},
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,position:'bottom',labels:{color:TC,font:{size:11,family:'DM Mono'},boxWidth:10,padding:12}}},
+    scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11,family:'DM Mono'}}},y:{grid:{color:GC},border:{dash:[3,3]},ticks:{color:TC,font:{size:11,family:'DM Mono'}}}}}});
+  const tb=document.getElementById('funnel-tbl');
+  monthly.forEach(r=>{
+    const s2b=(r.txn/r.sess*100).toFixed(2),c2o=r.cart?(r.txn/r.cart*100).toFixed(1):0;
+    const cls=+s2b>=1.5?'hi':+s2b>=0.5?'wa':'lo';
+    tb.innerHTML+=`<tr><td>${ML[r.m]}</td><td class="r">${r.sess.toLocaleString()}</td><td class="r">${r.cart.toLocaleString()}</td><td class="r">${r.co.toLocaleString()}</td><td class="r">${r.txn}</td><td class="r ${cls}">${s2b}%</td><td class="r">${c2o}%</td><td class="r">$${r.aov.toLocaleString()}</td></tr>`;
+  });
+  showFunnel('all',document.querySelector('.month-tab.active'));
+}
+
+function showFunnel(w,el){
+  document.querySelectorAll('.month-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  let d=w==='all'?{sess:T.sess,cart:T.cart,co:T.co,txn:T.txn}:{...monthly.find(x=>x.m===w)};
+  const steps=[{l:'Sessions',v:d.sess},{l:'加入購物車',v:d.cart},{l:'到結帳',v:d.co},{l:'完成訂單',v:d.txn}];
+  document.getElementById('funnel-viz').innerHTML=steps.map((s,i)=>{
+    const w2=Math.round(s.v/d.sess*100),rate=i>0?'('+(s.v/steps[i-1].v*100).toFixed(1)+'%)':'';
+    return `<div class="funnel-step"><div class="funnel-lbl">${s.l}</div><div class="funnel-track"><div class="funnel-fill" style="width:${w2}%;background:${FC[i]}"><span class="funnel-fill-text">${s.v.toLocaleString()}</span></div></div><div class="funnel-num">${s.v.toLocaleString()}</div><div class="funnel-rate">${rate}</div></div>`;
+  }).join('');
+}
+
+function buildSources(){
+  const top=SM.filter(d=>d.rev>0).slice(0,12);
+  const maxR=Math.max(...top.map(d=>d.rev)),maxS=Math.max(...top.map(d=>d.sess));
+  const el=document.getElementById('eff-bars-main');
+  top.forEach(d=>{
+    const rp=Math.round(d.rev/totalRev*100),sp=Math.round(d.sess/totalSess*100);
+    const eff=rp>sp?{t:'高效',c:'b-good'}:rp<sp?{t:'低效',c:'b-bad'}:{t:'平均',c:'b-warn'};
+    const mb=isMeta({src:d.src})?'<span class="badge b-meta">Meta</span>':'';
+    el.innerHTML+=`<div class="eff-row"><div class="eff-label" title="${d.src}/${d.med}">${d.src}${mb}</div><div class="eff-col"><div class="eff-row2"><div class="eff-track"><div class="eff-fill" style="width:${Math.round(d.rev/maxR*100)}%;background:#059669"></div></div><span class="eff-pct">Rev ${rp}%</span></div><div class="eff-row2"><div class="eff-track"><div class="eff-fill" style="width:${Math.round(d.sess/maxS*100)}%;background:#2563eb"></div></div><span class="eff-pct">Ses ${sp}%</span></div></div><span class="badge ${eff.c}" style="margin-left:8px">${eff.t}</span></div>`;
+  });
+  const t8=SM.slice(0,8);
+  function pie(id,vals,lgId){
+    new Chart(id,{type:'doughnut',data:{labels:t8.map(d=>d.src),datasets:[{data:vals,backgroundColor:PAL.slice(0,8),borderWidth:2,borderColor:'#fff'}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+    document.getElementById(lgId).innerHTML=t8.map((d,i)=>`<div class="leg-item"><div class="leg-dot" style="background:${PAL[i]}"></div>${d.src}</div>`).join('');
+  }
+  pie('c-src-sess',t8.map(d=>d.sess),'lg-sess');
+  pie('c-src-rev',t8.map(d=>d.rev),'lg-rev');
+  const tb=document.getElementById('src-tbl');
+  SM.slice(0,25).forEach(d=>{
+    const cvr=d.sess?(d.txn/d.sess*100).toFixed(2):0,aov=d.txn?Math.round(d.rev/d.txn):0;
+    const avgD=d.durs.length?Math.round(d.durs.reduce((a,b)=>a+b)/d.durs.length):0;
+    const cCls=+cvr>=2?'hi':+cvr>=0.5?'wa':'lo';
+    const mb=isMeta({src:d.src})?'<span class="badge b-meta">Meta</span>':'';
+    const gb=d.src==='google'&&d.med==='cpc'?'<span class="badge b-good">G·CPC</span>':'';
+    const cb=d.src==='Cyberbiz.Game'?'<span class="badge b-blue">活動</span>':'';
+    tb.innerHTML+=`<tr><td>${d.src}${mb}${gb}${cb}</td><td style="color:var(--text3);font-family:var(--mono);font-size:11px">${d.med}</td><td class="r">${d.sess.toLocaleString()}</td><td class="r">$${Math.round(d.rev/1000)}K</td><td class="r">${d.txn}</td><td class="r">${aov?'$'+aov.toLocaleString():'—'}</td><td class="r ${cCls}">${cvr}%</td><td class="r">${avgD}s</td></tr>`;
+  });
+}
+
+const META_SRCS=['fb','fb-drchen','FB','m.facebook.com','l.facebook.com','facebook.com','lm.facebook.com','facebook','ig'];
+function buildMeta(){
+  const mR=RAW.filter(r=>META_SRCS.includes(r.src));
+  const mS=sumF(mR,'sess'),mRev=sumF(mR,'rev'),mT=sumF(mR,'txn');
+  document.getElementById('kpi-meta').innerHTML=[
+    {l:'Meta 累計營收',v:fmtK(mRev),sub:'佔總營收 '+Math.round(mRev/totalRev*100)+'%',c:'meta'},
+    {l:'Meta 累計訂單',v:mT,sub:'3個月合計',c:'blue'},
+    {l:'Meta 整體轉換率',v:(mT/mS*100).toFixed(2)+'%',sub:'含 fb/traffic 噪音',c:'amber'},
+    {l:'Meta 客單價',v:'$'+(mT?Math.round(mRev/mT):0).toLocaleString(),sub:'平均每筆訂單',c:'green'},
+  ].map(k=>`<div class="kpi-card ${k.c}"><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div><div class="kpi-sub">${k.sub}</div></div>`).join('');
+
+  const tD=[
+    {src:'fb',med:'paid',c:'#2563eb'},{src:'fb-drchen',med:'paid',c:'#7c3aed'},
+    {src:'FB',med:'cpm',c:'#d97706'},{src:'fb',med:'traffic',c:'#d1d5db'},
+    {src:'m.facebook.com',med:'referral',c:'#059669'},{src:'ig',med:'paid',c:'#db2777'},
+  ];
+  new Chart('c-meta-trend',{type:'line',data:{labels:['1月','2月','3月'],datasets:tD.map(d=>({
+    label:`${d.src}/${d.med}`,
+    data:MONTHS.map(m=>{const r=RAW.find(r=>r.m===m&&r.src===d.src&&r.med===d.med);return r?r.sess:0;}),
+    borderColor:d.c,backgroundColor:d.c+'18',tension:.35,fill:false,pointRadius:5,pointBackgroundColor:d.c,pointBorderColor:'#fff',pointBorderWidth:2
+  }))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11,family:'DM Mono'}}},y:{grid:{color:GC},border:{dash:[3,3]},ticks:{color:TC,font:{size:11,family:'DM Mono'}}}}}});
+  document.getElementById('lg-meta').innerHTML=tD.map(d=>`<div class="leg-item"><div class="leg-dot" style="background:${d.c}"></div>${d.src}/${d.med}</div>`).join('');
+
+  const mK=[['fb','paid'],['fb-drchen','paid'],['FB','cpm'],['fb','traffic'],['m.facebook.com','referral'],['l.facebook.com','referral'],['lm.facebook.com','referral'],['ig','paid'],['FB','cpc'],['facebook','CPC'],['facebook.com','referral']];
+  const tb=document.getElementById('meta-tbl');
+  mK.forEach(([s,me])=>{
+    const rows=RAW.filter(r=>r.src===s&&r.med===me);
+    if(!rows.length) return;
+    const totS=sumF(rows,'sess'),totR=sumF(rows,'rev'),totT=sumF(rows,'txn');
+    const cvr=totS?(totT/totS*100).toFixed(2):0,cCls=+cvr>=2?'hi':+cvr>=0.5?'wa':'lo';
+    const isT=s==='fb'&&me==='traffic';
+    const g=m=>rows.find(r=>r.m===m)||{sess:0,rev:0,txn:0};
+    tb.innerHTML+=`<tr><td style="font-family:var(--mono);font-size:11px">${s}/${me}${isT?'<span class="badge b-bad" style="margin-left:5px">零轉換</span>':''}</td>${MONTHS.map(m=>{const r=g(m);return`<td class="r">${r.sess.toLocaleString()}</td><td class="r">${r.rev?'$'+Math.round(r.rev/1000)+'K':'—'}</td><td class="r">${r.txn||0}</td>`;}).join('')}<td class="r ${cCls}">${cvr}%</td></tr>`;
+  });
+
+  const bS=mK.map(([s,me])=>{
+    const rows=RAW.filter(r=>r.src===s&&r.med===me);
+    const sess=sumF(rows,'sess'),rev=sumF(rows,'rev'),txn=sumF(rows,'txn');
+    if(!txn||!sess) return null;
+    return{label:`${s}/${me}`,cvr:txn/sess*100,aov:Math.round(rev/txn),sess};
+  }).filter(Boolean);
+  const bC=['#2563eb','#7c3aed','#d97706','#059669','#db2777','#0891b2','#65a30d'];
+  new Chart('c-meta-bubble',{type:'bubble',data:{datasets:bS.map((d,i)=>({
+    label:d.label,data:[{x:+d.cvr.toFixed(2),y:d.aov,r:Math.max(5,Math.sqrt(d.sess)/1.8)}],
+    backgroundColor:bC[i%bC.length]+'44',borderColor:bC[i%bC.length],borderWidth:2
+  }))},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,position:'bottom',labels:{color:TC,font:{size:10,family:'DM Mono'},boxWidth:8,padding:10}},
+      tooltip:{callbacks:{label:c=>`${c.dataset.label} | CVR:${c.raw.x}% | AOV:$${c.raw.y}`}}},
+    scales:{x:{title:{display:true,text:'轉換率 (%)',color:TC,font:{size:11,family:'DM Mono'}},grid:{color:GC},ticks:{color:TC,font:{size:10,family:'DM Mono'}}},
+            y:{title:{display:true,text:'客單價 (NTD)',color:TC,font:{size:11,family:'DM Mono'}},grid:{color:GC},ticks:{color:TC,font:{size:10,family:'DM Mono'},callback:v=>'$'+v}}},
+    layout:{padding:{top:10,right:20}}}});
+}
+
+const ISSUES=[
+  {t:'bad',title:'fb / traffic — 流量黑洞，建議立即停止',tags:['Meta','P0','流量浪費'],
+   body:'2月 1,625 + 3月 1,593 = <strong>3,218 sessions，零訂單、零營收</strong>，平均停留 17–25 秒。廣告目標設為「流量型」導致大量無效點擊。<br><strong>→ 建議：立即暫停，或將廣告目標改為「轉換」目標。</strong>'},
+  {t:'bad',title:'UTM 命名混亂，4種標記切割同一來源歸因',tags:['Meta','P0','數據品質'],
+   body:'同是 Facebook 付費廣告，出現 <code>fb/paid</code>、<code>FB/cpm</code>、<code>FB/cpc</code>、<code>facebook/CPC</code> 等 4 種不同命名，報表失真、預算優化方向錯誤。<br><strong>→ 建議：統一規範，所有 FB 付費廣告使用一致的 UTM source / medium。</strong>'},
+  {t:'bad',title:'fb / paid Sessions 3個月掉 44%，需追查原因',tags:['Meta','P1','流量下滑'],
+   body:'1月 2,887 → 2月 2,225 → 3月 1,619，下滑 44%。訂單降幅遠小於流量降幅，代表受眾品質尚可，但觸及持續萎縮。<br><strong>→ 需確認：是否主動縮預算？廣告素材疲乏？受眾飽和？</strong>'},
+  {t:'bad',title:'Google Organic 高流量、幾乎零轉換',tags:['SEO','P1','策略偏差'],
+   body:'3個月 5,509 sessions，只有 14 筆訂單，轉換率 <strong>0.25%</strong>。大量流量來自資訊型關鍵字，不是購買型。<br><strong>→ 建議：優先優化「保健品推薦」「哪裡買」等商業意圖關鍵字。</strong>'},
+  {t:'bad',title:'Email 行銷幾乎無產出',tags:['Email','P2'],
+   body:'Cyberbiz.eDM 三個月共 129 sessions，只有 <strong>2 筆訂單</strong>，1月完全零轉換。eDM 的內容、CTA 或導購路徑有根本問題。<br><strong>→ 建議：重新設計 eDM 範本，加入明確優惠與直接購買按鈕。</strong>'},
+  {t:'warn',title:'fb-drchen / paid Sessions 下滑 37%，需補量',tags:['Meta','KOL帳號'],
+   body:'1月 685 → 3月 435 sessions，但 3月轉換率達 <strong>3.2%</strong>（Meta 最高）。受眾品質極佳，流量萎縮直接影響高品質訂單。<br><strong>→ 建議：評估追加此廣告組預算或擴大受眾範圍。</strong>'},
+  {t:'warn',title:'Unassigned 每月 20+ 筆訂單，來源無法追蹤',tags:['數據品質','UTM'],
+   body:'三個月共 60+ 筆高客單訂單無法歸因，完全無法判斷來自哪個渠道。<br><strong>→ 建議：全面補充 UTM 標記，特別是 LINE OA、eDM、站外連結。</strong>'},
+  {t:'warn',title:'客單價月波動大，需理解結構原因',tags:['訂單品質'],
+   body:'1月 $2,419 → 2月 $2,169 → 3月 $3,168，3月大幅拉高。需追蹤確認是促銷、品項結構，還是可持續的趨勢。'},
+  {t:'good',title:'Google CPC — 全站效率最高，值得加碼',tags:['Google Ads','最佳成效'],
+   body:'3個月 3,550 sessions，帶來 <strong>90 筆訂單，轉換率 2.54%</strong>，3月營收 $88,646 為單月所有來源最高。平均停留超過 200 秒。<br><strong>→ 建議：在預算允許下優先增加 Google CPC 投入。</strong>'},
+  {t:'good',title:'fb-drchen / paid — Meta 最高轉換率來源',tags:['Meta','KOL','最佳成效'],
+   body:'3月轉換率達 <strong>3.2%</strong>，是 Meta 所有來源最高。醫師/KOL 帳號粉絲購買意願極強，是 Meta 廣告中最值得擴大的受眾。'},
+  {t:'good',title:'Cyberbiz.Game — 轉換率 12.2%，回購機制卓越',tags:['站內活動','最佳成效'],
+   body:'三個月 409 sessions、<strong>50 筆訂單，轉換率 12.2%</strong>！平均停留超過 350 秒。老客戶遊戲化活動成效極佳。<br><strong>→ 建議：持續強化會員活動，考慮擴大活動頻率與獎勵設計。</strong>'},
+];
+
+function buildDiagnosis(){
+  ['bad','warn','good'].forEach(t=>{
+    document.getElementById('diag-'+t).innerHTML=ISSUES.filter(i=>i.t===t).map(i=>`
+      <div class="diag-item ${i.t}">
+        <div class="diag-icon">${i.t==='bad'?'🔴':i.t==='warn'?'🟡':'🟢'}</div>
+        <div>
+          <div class="diag-title">${i.title}</div>
+          <div class="diag-tags">${i.tags.map(t=>`<span class="diag-tag">${t}</span>`).join('')}</div>
+          <div class="diag-body">${i.body}</div>
+        </div>
+      </div>`).join('');
+  });
+}
+
+const SECS={overview:'s-overview',funnel:'s-funnel',sources:'s-sources',meta:'s-meta',diagnosis:'s-diagnosis'};
+const built={};
+function showSection(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(SECS[id]).classList.add('active');
+  el.classList.add('active');
+  if(!built[id]){
+    built[id]=true;
+    if(id==='funnel') buildFunnel();
+    if(id==='sources') buildSources();
+    if(id==='meta') buildMeta();
+    if(id==='diagnosis') buildDiagnosis();
+  }
+}
+buildOverview();
+</script>
+</body>
+</html>
