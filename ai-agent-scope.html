@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 公司應用範疇</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #f7f8fa;
+  --bg2: #ffffff;
+  --bg3: #f0f2f5;
+  --border: #e4e7ec;
+  --border2: #c9cdd6;
+  --text: #111827;
+  --text2: #4b5563;
+  --text3: #9ca3af;
+  --accent: #2563eb;
+  --accent-light: #eff6ff;
+  --accent2: #7c3aed;
+  --green: #059669;
+  --green-light: #ecfdf5;
+  --red: #dc2626;
+  --red-light: #fef2f2;
+  --amber: #d97706;
+  --amber-light: #fffbeb;
+  --meta: #1877f2;
+  --meta-light: #eff6ff;
+  --sans: 'Noto Sans TC', 'Plus Jakarta Sans', sans-serif;
+  --display: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow: 0 4px 12px rgba(0,0,0,0.07);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh;}
+
+.header{background:#fff;border-bottom:1px solid var(--border);padding:36px 48px 28px;}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:0;}
+.header-badge{display:inline-block;background:var(--accent-light);color:var(--accent);font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:6px;margin-bottom:10px;}
+.header-title{font-family:var(--display);font-size:clamp(20px,2.5vw,30px);font-weight:800;line-height:1.15;letter-spacing:-.02em;}
+.header-title span{color:var(--accent);}
+.header-sub{color:var(--text3);font-size:12px;margin-top:5px;}
+.header-meta{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg3);flex-shrink:0;}
+.hm-item{padding:10px 16px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;}
+.hm-item:last-child{border-right:none;}
+.hm-label{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;}
+.hm-value{font-family:var(--mono);font-size:12px;color:var(--text2);font-weight:500;}
+
+.nav{position:sticky;top:0;z-index:100;background:#fff;border-bottom:1px solid var(--border);padding:0 48px;display:flex;gap:0;overflow-x:auto;box-shadow:var(--shadow-sm);}
+.nav-item{padding:13px 18px;font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;user-select:none;}
+.nav-item:hover{color:var(--text2);}
+.nav-item.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.main{padding:36px 48px;max-width:1400px;margin:0 auto;}
+.section{display:none;}
+.section.active{display:block;}
+
+.sec-header{margin-bottom:24px;}
+.sec-badge{display:inline-block;background:var(--bg3);color:var(--text3);font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.12em;padding:3px 8px;border-radius:4px;margin-bottom:6px;}
+.sec-title{font-family:var(--display);font-size:19px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.sec-desc{color:var(--text3);font-size:13px;}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:24px;}
+.kpi-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
+.kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;}
+.kpi-card.blue::after{background:var(--accent);}
+.kpi-card.green::after{background:var(--green);}
+.kpi-card.amber::after{background:var(--amber);}
+.kpi-card.purple::after{background:var(--accent2);}
+.kpi-card.meta::after{background:var(--meta);}
+.kpi-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;}
+.kpi-value{font-family:var(--display);font-size:24px;font-weight:700;color:var(--text);line-height:1;margin-bottom:7px;}
+.kpi-delta{font-size:12px;font-weight:500;}
+.kpi-delta.up{color:var(--green);}
+.kpi-delta.dn{color:var(--red);}
+.kpi-delta.na{color:var(--text3);}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 22px;box-shadow:var(--shadow-sm);margin-bottom:14px;}
+.card-title{font-family:var(--display);font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.card-sub{font-size:11px;color:var(--text3);margin-bottom:16px;font-family:var(--mono);}
+.chart-wrap{position:relative;}
+
+.table-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:14px;}
+.table-hd{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.table-hd-title{font-family:var(--display);font-size:14px;font-weight:600;}
+.table-hd-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl thead th{text-align:left;padding:9px 13px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg3);white-space:nowrap;}
+.tbl tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+.tbl tbody tr:last-child{border-bottom:none;}
+.tbl tbody tr:hover{background:var(--bg);}
+.tbl td{padding:9px 13px;color:var(--text);white-space:nowrap;}
+.tbl .r{text-align:right;font-family:var(--mono);font-size:12px;}
+.tbl .hi{color:var(--green);font-weight:600;}
+.tbl .lo{color:var(--red);font-weight:600;}
+.tbl .wa{color:var(--amber);font-weight:600;}
+
+.badge{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:4px;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle;margin-left:4px;font-weight:500;}
+.b-meta{background:var(--meta-light);color:var(--meta);border:1px solid #bfdbfe;}
+.b-good{background:var(--green-light);color:var(--green);border:1px solid #a7f3d0;}
+.b-bad{background:var(--red-light);color:var(--red);border:1px solid #fecaca;}
+.b-warn{background:var(--amber-light);color:var(--amber);border:1px solid #fde68a;}
+.b-blue{background:var(--accent-light);color:var(--accent);border:1px solid #bfdbfe;}
+
+.diag-list{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+.diag-item{background:#fff;border:1px solid var(--border);border-radius:10px;padding:15px 17px 15px 19px;display:flex;gap:13px;align-items:flex-start;box-shadow:var(--shadow-sm);transition:box-shadow .15s;}
+.diag-item:hover{box-shadow:var(--shadow);}
+.diag-item.bad{border-left:3px solid var(--red);}
+.diag-item.warn{border-left:3px solid var(--amber);}
+.diag-item.good{border-left:3px solid var(--green);}
+.diag-icon{font-size:14px;flex-shrink:0;margin-top:2px;}
+.diag-title{font-family:var(--display);font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.diag-tags{margin-bottom:5px;}
+.diag-tag{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:4px;background:var(--bg3);color:var(--text3);border:1px solid var(--border);margin-right:4px;letter-spacing:.04em;text-transform:uppercase;}
+.diag-body{font-size:13px;color:var(--text2);line-height:1.65;}
+.diag-body strong{color:var(--text);font-weight:600;}
+.diag-body code{font-family:var(--mono);font-size:11px;background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--accent);}
+
+.funnel-step{display:flex;align-items:center;gap:12px;margin-bottom:9px;}
+.funnel-lbl{font-size:12px;font-weight:500;color:var(--text2);width:88px;flex-shrink:0;}
+.funnel-track{flex:1;background:var(--bg3);border-radius:6px;height:30px;overflow:hidden;}
+.funnel-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 11px;transition:width .6s ease;}
+.funnel-fill-text{font-family:var(--mono);font-size:11px;font-weight:500;color:#fff;}
+.funnel-num{font-family:var(--mono);font-size:12px;color:var(--text2);width:62px;text-align:right;flex-shrink:0;}
+.funnel-rate{font-family:var(--mono);font-size:11px;color:var(--text3);width:52px;text-align:right;flex-shrink:0;}
+
+.month-tabs{display:flex;gap:6px;margin-bottom:16px;}
+.month-tab{padding:5px 14px;font-size:12px;font-weight:500;border:1px solid var(--border);border-radius:7px;cursor:pointer;color:var(--text3);background:#fff;transition:all .15s;}
+.month-tab:hover{border-color:var(--border2);color:var(--text2);}
+.month-tab.active{color:var(--accent);border-color:var(--accent);background:var(--accent-light);}
+
+.eff-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.eff-label{font-size:12px;font-weight:500;color:var(--text);width:162px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.eff-col{flex:1;display:flex;flex-direction:column;gap:3px;}
+.eff-row2{display:flex;align-items:center;gap:6px;}
+.eff-track{flex:1;background:var(--bg3);border-radius:3px;height:7px;overflow:hidden;}
+.eff-fill{height:7px;border-radius:3px;}
+.eff-pct{font-family:var(--mono);font-size:10px;color:var(--text3);width:36px;}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);font-family:var(--mono);}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+.insight-box{display:flex;gap:10px;align-items:flex-start;background:var(--accent-light);border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.6;}
+
+.footer{margin-top:56px;padding:22px 48px;border-top:1px solid var(--border);background:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.footer-note{font-family:var(--mono);font-size:10px;color:var(--text3);}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.section.active .kpi-card{animation:fadeIn .2s ease both;}
+.section.active .kpi-card:nth-child(1){animation-delay:.03s;}
+.section.active .kpi-card:nth-child(2){animation-delay:.06s;}
+.section.active .kpi-card:nth-child(3){animation-delay:.09s;}
+.section.active .kpi-card:nth-child(4){animation-delay:.12s;}
+.section.active .kpi-card:nth-child(5){animation-delay:.15s;}
+.section.active .kpi-card:nth-child(6){animation-delay:.18s;}
+
+@media(max-width:768px){
+  .header,.main,.nav,.footer{padding-left:20px;padding-right:20px;}
+  .grid-2,.grid-3{grid-template-columns:1fr;}
+  .header-meta{display:none;}
+}
+</style>
+
+<style>
+/* ===== 本頁專用元件 ===== */
+.hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:24px;}
+.def-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:var(--shadow-sm);}
+.def-num{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.12em;margin-bottom:8px;}
+.def-title{font-family:var(--display);font-size:14px;font-weight:700;margin-bottom:6px;}
+.def-body{font-size:12.5px;color:var(--text2);line-height:1.7;}
+
+.vs-table td{vertical-align:top;white-space:normal;}
+.vs-table td.w{width:33%;}
+.table-scroll{overflow-x:auto;}
+.table-scroll .tbl{min-width:620px;}
+.table-scroll .vs-table{min-width:720px;}
+
+/* 部門應用地圖 */
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;}
+.dept-card{background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column;}
+.dept-hd{padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:9px;}
+.dept-ico{font-size:15px;}
+.dept-name{font-family:var(--display);font-size:13.5px;font-weight:700;}
+.dept-owner{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:1px;}
+.dept-body{padding:12px 16px 15px;flex:1;}
+.scene{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--border);}
+.scene:last-child{border-bottom:none;}
+.scene-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:7px;}
+.scene-txt{font-size:12.5px;color:var(--text2);line-height:1.6;flex:1;}
+.scene-txt b{color:var(--text);font-weight:600;}
+.pill{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:4px;letter-spacing:.04em;border:1px solid var(--border);white-space:nowrap;flex-shrink:0;margin-top:2px;}
+.p-l1{background:var(--bg3);color:var(--text3);}
+.p-l2{background:var(--accent-light);color:var(--accent);border-color:#bfdbfe;}
+.p-l3{background:#f5f3ff;color:var(--accent2);border-color:#ddd6fe;}
+
+/* 技術堆疊 */
+.stack{display:flex;flex-direction:column;gap:8px;}
+.layer{border:1px solid var(--border);border-radius:10px;padding:13px 16px;background:#fff;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow-sm);}
+.layer-tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;border-radius:5px;flex-shrink:0;width:86px;text-align:center;}
+.layer-name{font-family:var(--display);font-size:13px;font-weight:700;margin-bottom:3px;}
+.layer-desc{font-size:12.5px;color:var(--text2);line-height:1.65;}
+.layer-desc code{font-family:var(--mono);font-size:11px;background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--accent);}
+
+/* 導入路線圖 */
+.rm{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;}
+.rm-step{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 17px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
+.rm-step::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;background:var(--accent);}
+.rm-step.s2::after{background:var(--accent2);}
+.rm-step.s3::after{background:var(--amber);}
+.rm-step.s4::after{background:var(--green);}
+.rm-phase{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.rm-title{font-family:var(--display);font-size:14px;font-weight:700;margin-bottom:3px;}
+.rm-time{font-family:var(--mono);font-size:10px;color:var(--accent);margin-bottom:9px;}
+.rm-list{list-style:none;display:flex;flex-direction:column;gap:5px;}
+.rm-list li{font-size:12.5px;color:var(--text2);line-height:1.6;padding-left:13px;position:relative;}
+.rm-list li::before{content:'—';position:absolute;left:0;color:var(--text3);}
+.rm-out{margin-top:10px;padding-top:9px;border-top:1px dashed var(--border);font-size:11.5px;color:var(--text3);}
+.rm-out b{color:var(--text2);font-weight:600;}
+
+.note{font-size:11.5px;color:var(--text3);line-height:1.6;margin-top:10px;}
+@media(max-width:768px){.layer{flex-direction:column;gap:8px;}.layer-tag{width:auto;display:inline-block;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-badge">AI Agent Adoption Map · Internal</div>
+      <h1 class="header-title">AI Agent <span>公司應用範疇</span></h1>
+      <p class="header-sub">部門應用地圖 ／ 導入優先級 ／ 技術架構 ／ 落地路線與治理</p>
+    </div>
+    <div class="header-meta">
+      <div class="hm-item"><span class="hm-label">Scope</span><span class="hm-value">全公司 8 部門</span></div>
+      <div class="hm-item"><span class="hm-label">Scenarios</span><span class="hm-value">32 個場景</span></div>
+      <div class="hm-item"><span class="hm-label">Status</span><span class="hm-value">盤點草案</span></div>
+      <div class="hm-item"><span class="hm-label">Updated</span><span class="hm-value">2026-03-24</span></div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-item active" onclick="showSection('overview',this)">01 總覽與定義</div>
+  <div class="nav-item" onclick="showSection('map',this)">02 部門應用地圖</div>
+  <div class="nav-item" onclick="showSection('priority',this)">03 導入優先級</div>
+  <div class="nav-item" onclick="showSection('arch',this)">04 技術架構</div>
+  <div class="nav-item" onclick="showSection('roadmap',this)">05 路線圖與治理</div>
+</nav>
+
+<div class="main">
+
+<!-- 01 OVERVIEW -->
+<section class="section active" id="s-overview">
+  <div class="sec-header">
+    <div class="sec-badge">Section 01</div>
+    <div class="sec-title">AI Agent 是什麼、範疇到哪裡</div>
+    <div class="sec-desc">先對齊定義，再談應用；避免把「聊天機器人」與「可執行任務的 Agent」混為一談</div>
+  </div>
+
+  <div class="kpi-grid" id="kpi-main"></div>
+
+  <div class="insight-box">
+    <span>💡</span>
+    <div><strong>一句話定義：</strong>AI Agent = 大型語言模型（判斷）＋ 工具呼叫（行動）＋ 記憶與資料（上下文）＋ 編排與權限（治理）。
+    它與傳統自動化最大的差別是：<strong>流程不需要事先窮舉所有分支</strong>，Agent 會依當下情境自行決定下一步該呼叫哪個工具。</div>
+  </div>
+
+  <div class="hero-grid">
+    <div class="def-card">
+      <div class="def-num">CAPABILITY 01</div>
+      <div class="def-title">理解與判斷</div>
+      <div class="def-body">讀懂非結構化輸入 — 客戶訊息、報表、合約、廣告素材、會議逐字稿，並判斷該做什麼。這是 RPA 做不到的部分。</div>
+    </div>
+    <div class="def-card">
+      <div class="def-num">CAPABILITY 02</div>
+      <div class="def-title">呼叫工具行動</div>
+      <div class="def-body">透過 API／MCP 實際操作系統：查 GA4、拉 Meta 成效、寫進 Google Sheet、開工單、寄信、上稿。有行動能力才叫 Agent。</div>
+    </div>
+    <div class="def-card">
+      <div class="def-num">CAPABILITY 03</div>
+      <div class="def-title">記憶與知識</div>
+      <div class="def-body">接上公司知識庫（RAG）與歷史紀錄，讓輸出符合公司規範、品牌語氣與過往決策，而不是通用答案。</div>
+    </div>
+    <div class="def-card">
+      <div class="def-num">CAPABILITY 04</div>
+      <div class="def-title">編排與治理</div>
+      <div class="def-body">多步驟任務的流程控制、權限邊界、人工審核關卡（Human-in-the-loop）與稽核軌跡。決定能不能真的上線。</div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-hd">
+      <div>
+        <div class="table-hd-title">三種型態 — 不要一開始就做全自主 Agent</div>
+        <div class="table-hd-sub">Assistive / Semi-auto / Autonomous</div>
+      </div>
+    </div>
+    <div class="table-scroll">
+    <table class="tbl vs-table">
+      <thead><tr><th>型態</th><th class="w">運作方式</th><th class="w">適合場景</th><th>風險</th><th>建議比重</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="pill p-l1">L1 輔助</span></td>
+          <td class="w">人下指令、Agent 產出草稿，人決定要不要用。不直接寫入系統。</td>
+          <td class="w">文案撰寫、報告初稿、資料摘要、翻譯、程式碼輔助</td>
+          <td><span class="badge b-good">低</span></td>
+          <td class="r">先做，佔 60%</td>
+        </tr>
+        <tr>
+          <td><span class="pill p-l2">L2 半自動</span></td>
+          <td class="w">Agent 自行完成多步驟任務，但關鍵動作（發送／上稿／付款）需人工按下確認。</td>
+          <td class="w">週報自動產出、廣告成效診斷、進稿前置作業、客訴分類與回覆草稿</td>
+          <td><span class="badge b-warn">中</span></td>
+          <td class="r">主力，佔 35%</td>
+        </tr>
+        <tr>
+          <td><span class="pill p-l3">L3 自主</span></td>
+          <td class="w">在明確規則與預算上限內自行決策並執行，事後稽核。</td>
+          <td class="w">異常監控告警、預算再分配、庫存補貨提醒、排程型例行作業</td>
+          <td><span class="badge b-bad">高</span></td>
+          <td class="r">限縮，佔 5%</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">應用場景分布 — 依部門 × 自動化層級</div>
+      <div class="card-sub">Scenarios by department &amp; autonomy level</div>
+      <div class="chart-wrap" style="height:250px"><canvas id="c-dept"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">自動化成熟度分布</div>
+      <div class="card-sub">L1 輔助 / L2 半自動 / L3 自主</div>
+      <div class="chart-wrap" style="height:250px"><canvas id="c-level"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 MAP -->
+<section class="section" id="s-map">
+  <div class="sec-header">
+    <div class="sec-badge">Section 02</div>
+    <div class="sec-title">部門應用地圖</div>
+    <div class="sec-desc">八個部門 × 32 個可落地場景，標註自動化層級與需要串接的系統</div>
+  </div>
+  <div class="legend" style="margin-bottom:16px">
+    <div class="leg-item"><span class="leg-dot" style="background:#9ca3af"></span>L1 輔助（人審）</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#2563eb"></span>L2 半自動（關卡確認）</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#7c3aed"></span>L3 自主（規則內執行）</div>
+  </div>
+  <div class="dept-grid" id="dept-grid"></div>
+</section>
+
+<!-- 03 PRIORITY -->
+<section class="section" id="s-priority">
+  <div class="sec-header">
+    <div class="sec-badge">Section 03</div>
+    <div class="sec-title">導入優先級</div>
+    <div class="sec-desc">以「價值 × 可行性」排序，先做右上角：價值高、難度低</div>
+  </div>
+  <div class="insight-box">
+    <span>🎯</span>
+    <div>排序原則：<strong>資料已在手、流程已標準化、錯了可以救</strong>的場景最先做。
+    價值（1–10）看省下的工時與決策品質；可行性（1–10）看資料可得性、系統可串接程度與錯誤成本。</div>
+  </div>
+  <div class="card">
+    <div class="card-title">價值 × 可行性矩陣</div>
+    <div class="card-sub">Impact vs. Feasibility — 泡泡大小代表預估每月可省工時</div>
+    <div class="chart-wrap" style="height:340px"><canvas id="c-matrix"></canvas></div>
+    <div class="legend">
+      <div class="leg-item"><span class="leg-dot" style="background:#059669"></span>P0 立即啟動</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#2563eb"></span>P1 第二波</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#d97706"></span>P2 觀望／需先補資料</div>
+    </div>
+  </div>
+  <div class="table-card">
+    <div class="table-hd">
+      <div>
+        <div class="table-hd-title">優先場景清單</div>
+        <div class="table-hd-sub">Ranked backlog — 工時為估算值，需於 POC 驗證</div>
+      </div>
+    </div>
+    <div class="table-scroll"><table class="tbl" id="tbl-priority"></table></div>
+  </div>
+  <p class="note">＊「每月省時」為導入前估算，僅供排序參考；正式數字以 POC 前後量測為準。</p>
+</section>
+
+<!-- 04 ARCH -->
+<section class="section" id="s-arch">
+  <div class="sec-header">
+    <div class="sec-badge">Section 04</div>
+    <div class="sec-title">技術架構與能力層</div>
+    <div class="sec-desc">同一套底層能力支撐所有部門場景，避免每個需求各做一套</div>
+  </div>
+  <div class="insight-box">
+    <span>🏗️</span>
+    <div><strong>原則：一次投資、多處複用。</strong>資料層與工具層是共用地基（做一次），
+    上層的部門場景只是不同的提示詞、流程與權限組合（做很多次、很快）。</div>
+  </div>
+  <div class="card">
+    <div class="card-title">六層架構</div>
+    <div class="card-sub">由上而下：使用者 → 治理 → 編排 → 模型 → 工具 → 資料</div>
+    <div class="stack" id="stack"></div>
+  </div>
+  <div class="grid-2">
+    <div class="table-card">
+      <div class="table-hd"><div><div class="table-hd-title">需要串接的系統盤點</div><div class="table-hd-sub">Tool &amp; data integration</div></div></div>
+      <div class="table-scroll"><table class="tbl" id="tbl-sys"></table></div>
+    </div>
+    <div class="table-card">
+      <div class="table-hd"><div><div class="table-hd-title">共用能力模組</div><div class="table-hd-sub">Shared building blocks</div></div></div>
+      <div class="table-scroll"><table class="tbl" id="tbl-mod"></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 ROADMAP -->
+<section class="section" id="s-roadmap">
+  <div class="sec-header">
+    <div class="sec-badge">Section 05</div>
+    <div class="sec-title">導入路線圖與治理</div>
+    <div class="sec-desc">四階段推進，每階段都有明確產出與退場條件</div>
+  </div>
+  <div class="rm" id="roadmap"></div>
+
+  <div style="margin:26px 0 10px;display:flex;align-items:center;gap:8px">
+    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--red)"></span>
+    <span style="font-size:12px;font-weight:600;color:var(--text2)">高風險 — 上線前必須有對策</span>
+  </div>
+  <div class="diag-list" id="risk-bad"></div>
+  <div style="margin:18px 0 10px;display:flex;align-items:center;gap:8px">
+    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--amber)"></span>
+    <span style="font-size:12px;font-weight:600;color:var(--text2)">中風險 — 持續監控</span>
+  </div>
+  <div class="diag-list" id="risk-warn"></div>
+
+  <div class="table-card" style="margin-top:22px">
+    <div class="table-hd">
+      <div>
+        <div class="table-hd-title">成效衡量指標</div>
+        <div class="table-hd-sub">How we know it works</div>
+      </div>
+    </div>
+    <div class="table-scroll"><table class="tbl" id="tbl-kpi"></table></div>
+  </div>
+</section>
+
+</div>
+
+<div class="footer">
+  <div class="footer-note">AI Agent 公司應用範疇 ／ 內部盤點草案 ／ 2026-03-24</div>
+  <div class="footer-note">場景與工時為估算值，實際成效以 POC 量測為準</div>
+</div>
+
+<script>
+/* ========== 資料 ========== */
+const KPIS=[
+  {c:'blue',   label:'涵蓋部門',    value:'8',    delta:'全公司主要職能',        deltaCls:'na',  sub:'行銷 / 電商 / 客服 / 業務 / BI / 財會 / HR / IT'},
+  {c:'purple', label:'盤點場景',    value:'32',   delta:'可落地、非概念性',      deltaCls:'na',  sub:'每個場景都有明確輸入與產出'},
+  {c:'green',  label:'P0 立即啟動', value:'9',    delta:'價值高 × 難度低',       deltaCls:'up',  sub:'資料已在手、流程已標準化'},
+  {c:'amber',  label:'預估每月省時', value:'≈ 320 hr', delta:'估算值，待 POC 驗證', deltaCls:'na', sub:'約等於 2 名全職人力的例行作業'},
+  {c:'meta',   label:'需串接系統',  value:'11',   delta:'8 個已有 API / MCP',    deltaCls:'up',  sub:'GA4、Meta、Google Ads、CRM、ERP…'},
+  {c:'blue',   label:'建議起步期程', value:'6 週', delta:'POC 兩到三個場景',      deltaCls:'na',  sub:'先證明價值，再談平台化'},
+];
+
+const DEPTS=[
+  {ico:'🎯',name:'行銷與廣告投放',owner:'Marketing / Paid Media',scenes:[
+    {lv:3,t:'<b>投放成效巡檢與異常告警</b> — 每日拉取各平台數據，比對基準值，CPA／ROAS 異常自動通知負責人'},
+    {lv:1,t:'<b>廣告文案與素材變體</b> — 依商品賣點與受眾批量產出標題／內文變體，供人挑選上稿'},
+    {lv:2,t:'<b>週報／月報自動彙整</b> — GA4 ＋ Meta ＋ Google Ads 跨平台整併、算出漏斗與趨勢、產出圖表報告'},
+    {lv:2,t:'<b>進稿前置檢核</b> — 受眾、商品組合、命名規則、追蹤參數（UTM）一致性檢查，錯誤退回'},
+  ]},
+  {ico:'🛒',name:'電商營運',owner:'E-commerce Operations',scenes:[
+    {lv:1,t:'<b>商品文案與 SEO 描述</b> — 依規格表與品牌語氣產出商品頁文案、標題與 meta description'},
+    {lv:2,t:'<b>促銷檔期設定檢核</b> — 價格、庫存、上下架時間、贈品條件交叉比對，上線前攔錯'},
+    {lv:2,t:'<b>轉換漏斗診斷</b> — 找出加入購物車→結帳的流失點，關聯裝置／來源／商品，給出行動建議'},
+    {lv:3,t:'<b>補貨與滯銷提醒</b> — 依銷售速度與庫存水位，在規則內自動發出補貨／清庫存提醒'},
+  ]},
+  {ico:'💬',name:'客服與會員經營',owner:'Customer Service / CRM',scenes:[
+    {lv:2,t:'<b>客訴分類與優先級</b> — 判讀情緒與問題類型，指派給正確窗口，急件即時升級'},
+    {lv:1,t:'<b>回覆草稿生成</b> — 依 FAQ 與歷史工單產出回覆稿，客服確認後送出'},
+    {lv:2,t:'<b>知識庫自動維護</b> — 從已結案工單萃取新問題，補進 FAQ 並標記待審'},
+    {lv:2,t:'<b>會員分群與再行銷名單</b> — 依購買週期、品類偏好、回購機率產出名單與溝通建議'},
+  ]},
+  {ico:'🤝',name:'業務與 BD',owner:'Sales / Business Development',scenes:[
+    {lv:1,t:'<b>潛在客戶研究</b> — 彙整公開資料產出客戶背景、產業動態與談話重點 briefing'},
+    {lv:1,t:'<b>提案簡報草稿</b> — 依既有模板與客戶產業產出提案初稿與競品比較'},
+    {lv:2,t:'<b>報價與合約條款檢核</b> — 比對標準條款，標出差異與風險條文，法務只看例外'},
+    {lv:2,t:'<b>商機紀錄回寫 CRM</b> — 從會議記錄抽出決策者、預算、時程、下一步並更新 CRM 欄位'},
+  ]},
+  {ico:'📊',name:'資料與分析',owner:'Data / BI',scenes:[
+    {lv:2,t:'<b>自然語言查報表</b> — 用中文問「上個月 Meta 哪個受眾 ROAS 最高」，直接取數並附圖'},
+    {lv:2,t:'<b>資料品質檢核</b> — UTM 命名、事件追蹤、重複訂單、幣別單位等異常偵測與清單化'},
+    {lv:3,t:'<b>歸因異常偵測</b> — 監控各管道貢獻度突變，先示警再由分析師判讀'},
+    {lv:1,t:'<b>儀表板文字洞察</b> — 把圖表轉成「發生什麼、為什麼、建議做什麼」三段式說明'},
+  ]},
+  {ico:'💰',name:'財務與會計',owner:'Finance / Accounting',scenes:[
+    {lv:2,t:'<b>發票與請款單辨識</b> — 影像／PDF 轉結構化資料，欄位不齊者退回補件'},
+    {lv:2,t:'<b>媒體帳單對帳</b> — 廣告平台帳單與投放紀錄、客戶請款三方比對，差異列表'},
+    {lv:3,t:'<b>費用異常標記</b> — 依歷史區間與預算規則自動標記可疑支出'},
+    {lv:1,t:'<b>月結報表初稿</b> — 產出損益初稿與差異說明文字，會計覆核'},
+  ]},
+  {ico:'👥',name:'人資與行政',owner:'People / Admin',scenes:[
+    {lv:1,t:'<b>JD 撰寫與履歷初篩</b> — 產出職缺描述、依硬性條件排序履歷（不做最終決策）'},
+    {lv:2,t:'<b>新人 onboarding 助理</b> — 回答制度、系統、流程問題，附上文件出處連結'},
+    {lv:2,t:'<b>內部規章問答（RAG）</b> — 差旅、報帳、請假規定即問即答，答案必附條文來源'},
+    {lv:1,t:'<b>會議記錄與待辦抽取</b> — 逐字稿轉重點結論、負責人與期限'},
+  ]},
+  {ico:'🛠️',name:'IT／工程與資安',owner:'Engineering / Security',scenes:[
+    {lv:1,t:'<b>程式碼審查與測試草擬</b> — PR 初審、補測試案例、產生變更說明'},
+    {lv:2,t:'<b>事件告警初步定位</b> — 讀 log 與監控指標，提出可能原因與影響範圍'},
+    {lv:1,t:'<b>內部工具與腳本產生</b> — 把重複性手動作業寫成可執行腳本'},
+    {lv:2,t:'<b>權限與存取盤點</b> — 定期盤點帳號權限，標記離職未回收與過度授權'},
+  ]},
+];
+
+const PRIORITY=[
+  {n:'週報／月報自動彙整',      d:'行銷',   v:9,f:9,h:48,p:'P0'},
+  {n:'投放成效巡檢與異常告警',  d:'行銷',   v:9,f:8,h:32,p:'P0'},
+  {n:'客訴分類與優先級',        d:'客服',   v:8,f:9,h:40,p:'P0'},
+  {n:'回覆草稿生成',            d:'客服',   v:8,f:9,h:44,p:'P0'},
+  {n:'商品文案與 SEO 描述',     d:'電商',   v:7,f:9,h:30,p:'P0'},
+  {n:'會議記錄與待辦抽取',      d:'HR',     v:6,f:10,h:18,p:'P0'},
+  {n:'內部規章問答（RAG）',     d:'HR',     v:6,f:8,h:12,p:'P0'},
+  {n:'進稿前置檢核',            d:'行銷',   v:8,f:7,h:20,p:'P0'},
+  {n:'資料品質檢核',            d:'BI',     v:7,f:8,h:16,p:'P0'},
+  {n:'自然語言查報表',          d:'BI',     v:9,f:6,h:26,p:'P1'},
+  {n:'媒體帳單對帳',            d:'財會',   v:8,f:6,h:24,p:'P1'},
+  {n:'發票與請款單辨識',        d:'財會',   v:7,f:6,h:22,p:'P1'},
+  {n:'轉換漏斗診斷',            d:'電商',   v:8,f:6,h:14,p:'P1'},
+  {n:'商機紀錄回寫 CRM',        d:'業務',   v:6,f:6,h:12,p:'P1'},
+  {n:'程式碼審查與測試草擬',    d:'IT',     v:6,f:7,h:16,p:'P1'},
+  {n:'補貨與滯銷提醒',          d:'電商',   v:7,f:4,h:10,p:'P2'},
+  {n:'報價與合約條款檢核',      d:'業務',   v:7,f:3,h:8, p:'P2'},
+  {n:'費用異常標記',            d:'財會',   v:6,f:3,h:6, p:'P2'},
+];
+
+const LAYERS=[
+  {tag:'L6 介面',  cls:'b-blue',name:'使用者介面 Interface',
+   desc:'員工實際使用的入口：Slack／Teams 對話、內部網頁、Google Sheet 側欄、開發者用的 CLI。<strong>介面越貼近既有工作流，採用率越高</strong>，不要另外開一個沒人登入的後台。'},
+  {tag:'L5 治理',  cls:'b-bad',name:'治理與權限 Governance',
+   desc:'誰能用哪個 Agent、Agent 能碰哪些資料、哪些動作需人工確認、每次呼叫留下什麼稽核紀錄，以及每月成本上限。<strong>這層沒做，就不該讓 Agent 碰正式系統。</strong>'},
+  {tag:'L4 編排',  cls:'b-warn',name:'流程編排 Orchestration',
+   desc:'多步驟任務的拆解與控制：排程觸發、失敗重試、子任務分工、人工審核關卡（Human-in-the-loop）、結果回寫。對應 <code>workflow</code> 與 <code>sub-agent</code> 兩種模式。'},
+  {tag:'L3 模型',  cls:'b-good',name:'模型與提示 Model &amp; Prompt',
+   desc:'依任務難度選模型（複雜推理 vs. 大量低成本任務）、共用提示詞範本、輸出格式約束（JSON schema），以及回歸測試用的評測集。'},
+  {tag:'L2 工具',  cls:'b-meta',name:'工具串接 Tools / MCP',
+   desc:'Agent 的雙手：以 <code>MCP</code> 或 API 連上 GA4、Meta Ads、Google Ads、momo、CRM、ERP、Google Workspace。<strong>共用一次，所有部門場景都能用。</strong>'},
+  {tag:'L1 資料',  cls:'b-blue',name:'資料與知識庫 Data / RAG',
+   desc:'公司知識庫（SOP、規章、品牌指引、歷史案例）向量化檢索，加上資料倉儲與報表原始檔。資料需帶權限標記，避免跨部門越權讀取。'},
+];
+
+const SYSTEMS=[
+  ['GA4 / Looker Studio','網站與電商行為數據','官方 API','已可串'],
+  ['Meta Ads','廣告成效、受眾、素材','Graph API / MCP','已可串'],
+  ['Google Ads','關鍵字、購物廣告成效','Google Ads API / MCP','已可串'],
+  ['momo / 通路後台','協作廣告與商品資料','部分 API，其餘匯出檔','部分'],
+  ['電商平台（Cyberbiz 等）','訂單、商品、庫存','官方 API','已可串'],
+  ['CRM','客戶、商機、聯繫紀錄','API','已可串'],
+  ['ERP / 會計系統','帳款、費用、發票','檔案匯出為主','待評估'],
+  ['客服工單系統','工單、FAQ、對話紀錄','API','已可串'],
+  ['Google Workspace','試算表、文件、信件、日曆','官方 API','已可串'],
+  ['內部知識庫','SOP、規章、品牌指引','文件同步 + 向量索引','待建置'],
+  ['監控 / Log','系統事件與告警','API','已可串'],
+];
+
+const MODULES=[
+  ['報表取數模組','統一的跨平台指標查詢與快取，避免每個場景各自寫一份',9],
+  ['知識檢索（RAG）','文件切分、向量索引、來源引用，答案必附出處',8],
+  ['文件解析模組','PDF／影像／試算表轉結構化資料',6],
+  ['稽核與日誌','記錄每次呼叫的輸入、工具、輸出與使用者',32],
+  ['審核關卡元件','把「送出前需人工確認」做成可複用的流程節點',17],
+  ['提示詞範本庫','品牌語氣、報告格式、輸出 schema 統一管理',20],
+];
+
+const ROADMAP=[
+  {cls:'',   phase:'PHASE 0',title:'盤點與對齊',time:'第 1–2 週',
+   items:['確認場景清單與負責人','檢查資料可得性與權限','法遵與客戶合約檢視','訂出成功指標與量測方式'],
+   out:'<b>產出：</b>優先場景清單、成功指標定義'},
+  {cls:'s2', phase:'PHASE 1',title:'POC 概念驗證',time:'第 3–8 週',
+   items:['挑 2–3 個 P0 場景實作','一律先用 L1／L2（人審）模式','量測導入前後工時與品質','蒐集使用者回饋並迭代'],
+   out:'<b>產出：</b>可運作原型、真實省時數據'},
+  {cls:'s3', phase:'PHASE 2',title:'單部門 Pilot',time:'第 3–5 個月',
+   items:['選一個部門做全流程導入','串接正式系統與權限模型','建立審核關卡與稽核軌跡','撰寫 SOP 與教育訓練'],
+   out:'<b>產出：</b>SOP、權限模型、稽核機制'},
+  {cls:'s4', phase:'PHASE 3',title:'跨部門規模化',time:'第 6 個月起',
+   items:['共用能力模組平台化','複製到其他部門場景','成本與品質持續監控','建立內部 AI 使用規範'],
+   out:'<b>產出：</b>內部平台與治理制度'},
+];
+
+const RISKS=[
+  {t:'bad',title:'資料外洩與權限越界',tags:['資安','必要條件'],
+   body:'Agent 若持有超出使用者本身的權限，等同繞過既有權控。<br><strong>→ 對策：</strong>Agent 權限一律不高於呼叫者；敏感資料（客戶名單、財務、個資）分級標記；所有工具呼叫留存稽核紀錄。'},
+  {t:'bad',title:'幻覺造成對外錯誤資訊',tags:['品質','對外風險'],
+   body:'錯誤的數字或承諾一旦發給客戶就是事故。<br><strong>→ 對策：</strong>對外內容一律 L1／L2 人審；數據類回答必須引用來源與查詢條件；建立回歸評測集，定期抽驗。'},
+  {t:'bad',title:'法遵與廣告合規',tags:['法務','產業規範'],
+   body:'生醫、保健、醫療類文案有法規限制，AI 產出的宣稱可能違規。<br><strong>→ 對策：</strong>禁用詞與宣稱規則寫進提示詞與檢核程式；上稿前強制合規檢查；保留審核紀錄備查。'},
+  {t:'warn',title:'成本失控與供應商依賴',tags:['成本','架構'],
+   body:'高頻呼叫大模型的月費可能超出預期，且過度綁定單一供應商。<br><strong>→ 對策：</strong>依任務難度分級選模型；設定每月用量上限與告警；抽象化模型呼叫層，保留替換彈性。'},
+  {t:'warn',title:'影子 AI — 員工自行使用未受管工具',tags:['治理','資安'],
+   body:'沒有官方管道時，同仁會把公司資料貼進個人帳號的工具裡。<br><strong>→ 對策：</strong>盡快提供好用的官方入口；公告可用／不可用清單；以教育取代全面禁止。'},
+  {t:'warn',title:'流程黑箱、無法追溯',tags:['稽核','營運'],
+   body:'出錯時說不清是誰、在哪一步、依什麼資料做的決定。<br><strong>→ 對策：</strong>每次執行留存輸入、工具呼叫、輸出與版本；重要流程可重播（replay）。'},
+  {t:'warn',title:'人員技能落差與抗拒',tags:['組織','變革'],
+   body:'工具做好了但沒人用，或用法錯誤導致品質下降。<br><strong>→ 對策：</strong>每部門指定種子使用者；以「省下的時間」而非「取代人力」溝通；把使用方式寫進 SOP 與新人訓練。'},
+];
+
+const KPI_TBL=[
+  ['採用率','每週實際使用 Agent 的同仁比例','Pilot 部門 ≥ 70%','平台使用紀錄'],
+  ['任務完成率','Agent 產出無需重做即可使用的比例','≥ 80%','人工抽樣評分'],
+  ['例行作業工時','導入前後同一任務所需人時','下降 ≥ 40%','前後量測（同一批任務）'],
+  ['錯誤／退回率','需要人工修正或退回的比例','≤ 10%','審核關卡紀錄'],
+  ['回應時效','客服／內部問答首次回應時間','縮短 ≥ 30%','工單系統'],
+  ['單位成本','每完成一件任務的模型成本','低於人工成本 1/5','用量計費紀錄'],
+  ['事故數','資安、合規、對外錯誤資訊事件','0 件','稽核與事件紀錄'],
+];
+
+/* ========== 建構 ========== */
+const LV={1:{c:'#9ca3af',cls:'p-l1',txt:'L1 輔助'},2:{c:'#2563eb',cls:'p-l2',txt:'L2 半自動'},3:{c:'#7c3aed',cls:'p-l3',txt:'L3 自主'}};
+const PC={P0:'#059669',P1:'#2563eb',P2:'#d97706'};
+const FONT="'Noto Sans TC','Plus Jakarta Sans',sans-serif";
+const gridOpt={grid:{color:'#eef0f4'},ticks:{color:'#9ca3af',font:{family:FONT,size:11}}};
+/* Chart.js 由 CDN 載入；若載入失敗仍不影響頁面其他內容 */
+function mkChart(id,cfg){
+  const el=document.getElementById(id);
+  if(!el) return;
+  if(typeof Chart==='undefined'){
+    el.parentElement.innerHTML='<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px">圖表載入失敗（無法連線至 CDN）</div>';
+    return;
+  }
+  new Chart(el,cfg);
+}
+
+function buildOverview(){
+  document.getElementById('kpi-main').innerHTML=KPIS.map(k=>`
+    <div class="kpi-card ${k.c}">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+      <div class="kpi-delta ${k.deltaCls}">${k.delta}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('');
+
+  mkChart('c-dept',{
+    type:'bar',
+    data:{labels:DEPTS.map(d=>d.name),
+      datasets:[1,2,3].map(lv=>({
+        label:LV[lv].txt,
+        data:DEPTS.map(d=>d.scenes.filter(s=>s.lv===lv).length),
+        backgroundColor:LV[lv].c,borderRadius:3,barThickness:16,stack:'a'}))},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{color:'#4b5563',font:{family:FONT,size:11},padding:12,boxWidth:11,boxHeight:11}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+'：'+c.parsed.x+' 個'}}},
+      scales:{x:{...gridOpt,stacked:true,beginAtZero:true,ticks:{...gridOpt.ticks,stepSize:1}},
+        y:{stacked:true,grid:{display:false},ticks:{color:'#4b5563',font:{family:FONT,size:11}}}}}
+  });
+
+  const cnt={1:0,2:0,3:0};
+  DEPTS.forEach(d=>d.scenes.forEach(s=>cnt[s.lv]++));
+  mkChart('c-level',{
+    type:'doughnut',
+    data:{labels:['L1 輔助','L2 半自動','L3 自主'],
+      datasets:[{data:[cnt[1],cnt[2],cnt[3]],backgroundColor:['#9ca3af','#2563eb','#7c3aed'],borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',
+      plugins:{legend:{position:'bottom',labels:{color:'#4b5563',font:{family:FONT,size:11},padding:14,boxWidth:11,boxHeight:11}},
+        tooltip:{callbacks:{label:c=>c.label+'：'+c.parsed+' 個場景'}}}}
+  });
+}
+
+function buildMap(){
+  document.getElementById('dept-grid').innerHTML=DEPTS.map(d=>`
+    <div class="dept-card">
+      <div class="dept-hd">
+        <span class="dept-ico">${d.ico}</span>
+        <div>
+          <div class="dept-name">${d.name}</div>
+          <div class="dept-owner">${d.owner} · ${d.scenes.length} 個場景</div>
+        </div>
+      </div>
+      <div class="dept-body">
+        ${d.scenes.map(s=>`
+          <div class="scene">
+            <span class="scene-dot" style="background:${LV[s.lv].c}"></span>
+            <span class="scene-txt">${s.t}</span>
+            <span class="pill ${LV[s.lv].cls}">${LV[s.lv].txt}</span>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function buildPriority(){
+  const groups=['P0','P1','P2'].map(p=>({
+    label:p,backgroundColor:PC[p]+'cc',borderColor:PC[p],
+    data:PRIORITY.filter(s=>s.p===p).map(s=>({x:s.f,y:s.v,r:Math.max(6,s.h/3.2),n:s.n,d:s.d,h:s.h}))
+  }));
+  mkChart('c-matrix',{
+    type:'bubble',data:{datasets:groups},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>{const r=c.raw;return [r.n+'（'+r.d+'）','價值 '+r.y+' ／ 可行性 '+r.x,'預估每月省 '+r.h+' 小時'];}}}},
+      scales:{
+        x:{...gridOpt,min:1,max:11,title:{display:true,text:'可行性 →（資料可得、易串接、錯誤成本低）',color:'#9ca3af',font:{family:FONT,size:11}}},
+        y:{...gridOpt,min:1,max:11,title:{display:true,text:'價值 →（省時、決策品質）',color:'#9ca3af',font:{family:FONT,size:11}}}}}
+  });
+
+  const rows=[...PRIORITY].sort((a,b)=>a.p.localeCompare(b.p)||(b.v*b.f)-(a.v*a.f));
+  document.getElementById('tbl-priority').innerHTML=`
+    <thead><tr><th>#</th><th>場景</th><th>部門</th><th>價值</th><th>可行性</th><th>每月省時＊</th><th>優先級</th><th>建議層級</th></tr></thead>
+    <tbody>${rows.map((s,i)=>`
+      <tr>
+        <td class="r" style="color:var(--text3)">${String(i+1).padStart(2,'0')}</td>
+        <td style="font-weight:500">${s.n}</td>
+        <td style="color:var(--text2)">${s.d}</td>
+        <td class="r ${s.v>=8?'hi':''}">${s.v}</td>
+        <td class="r ${s.f>=8?'hi':s.f<=4?'lo':''}">${s.f}</td>
+        <td class="r">${s.h} hr</td>
+        <td><span class="badge ${s.p==='P0'?'b-good':s.p==='P1'?'b-blue':'b-warn'}">${s.p}</span></td>
+        <td><span class="pill ${s.p==='P0'?'p-l2':'p-l1'}">${s.p==='P2'?'L1 起步':'L2 人審'}</span></td>
+      </tr>`).join('')}</tbody>`;
+}
+
+function buildArch(){
+  document.getElementById('stack').innerHTML=LAYERS.map(l=>`
+    <div class="layer">
+      <span class="layer-tag badge ${l.cls}" style="margin-left:0">${l.tag}</span>
+      <div>
+        <div class="layer-name">${l.name}</div>
+        <div class="layer-desc">${l.desc}</div>
+      </div>
+    </div>`).join('');
+
+  const st={'已可串':'b-good','部分':'b-warn','待評估':'b-bad','待建置':'b-bad'};
+  document.getElementById('tbl-sys').innerHTML=`
+    <thead><tr><th>系統</th><th>用途</th><th>串接方式</th><th>狀態</th></tr></thead>
+    <tbody>${SYSTEMS.map(s=>`
+      <tr>
+        <td style="font-weight:500">${s[0]}</td>
+        <td style="color:var(--text2)">${s[1]}</td>
+        <td style="color:var(--text2);font-family:var(--mono);font-size:11.5px">${s[2]}</td>
+        <td><span class="badge ${st[s[3]]}" style="margin-left:0">${s[3]}</span></td>
+      </tr>`).join('')}</tbody>`;
+
+  document.getElementById('tbl-mod').innerHTML=`
+    <thead><tr><th>模組</th><th>說明</th><th>複用場景</th></tr></thead>
+    <tbody>${MODULES.map(m=>`
+      <tr>
+        <td style="font-weight:500">${m[0]}</td>
+        <td style="color:var(--text2);white-space:normal">${m[1]}</td>
+        <td class="r hi">${m[2]}</td>
+      </tr>`).join('')}</tbody>`;
+}
+
+function buildRoadmap(){
+  document.getElementById('roadmap').innerHTML=ROADMAP.map(r=>`
+    <div class="rm-step ${r.cls}">
+      <div class="rm-phase">${r.phase}</div>
+      <div class="rm-title">${r.title}</div>
+      <div class="rm-time">${r.time}</div>
+      <ul class="rm-list">${r.items.map(i=>`<li>${i}</li>`).join('')}</ul>
+      <div class="rm-out">${r.out}</div>
+    </div>`).join('');
+
+  ['bad','warn'].forEach(t=>{
+    document.getElementById('risk-'+t).innerHTML=RISKS.filter(r=>r.t===t).map(r=>`
+      <div class="diag-item ${r.t}">
+        <div class="diag-icon">${r.t==='bad'?'🔴':'🟡'}</div>
+        <div>
+          <div class="diag-title">${r.title}</div>
+          <div class="diag-tags">${r.tags.map(g=>`<span class="diag-tag">${g}</span>`).join('')}</div>
+          <div class="diag-body">${r.body}</div>
+        </div>
+      </div>`).join('');
+  });
+
+  document.getElementById('tbl-kpi').innerHTML=`
+    <thead><tr><th>指標</th><th>定義</th><th>目標</th><th>量測方式</th></tr></thead>
+    <tbody>${KPI_TBL.map(k=>`
+      <tr>
+        <td style="font-weight:500">${k[0]}</td>
+        <td style="color:var(--text2);white-space:normal">${k[1]}</td>
+        <td class="r hi" style="white-space:nowrap">${k[2]}</td>
+        <td style="color:var(--text3)">${k[3]}</td>
+      </tr>`).join('')}</tbody>`;
+}
+
+const SECS={overview:'s-overview',map:'s-map',priority:'s-priority',arch:'s-arch',roadmap:'s-roadmap'};
+const built={};
+function showSection(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(SECS[id]).classList.add('active');
+  el.classList.add('active');
+  if(!built[id]){
+    built[id]=true;
+    if(id==='map') buildMap();
+    if(id==='priority') buildPriority();
+    if(id==='arch') buildArch();
+    if(id==='roadmap') buildRoadmap();
+  }
+}
+buildOverview();
+</script>
+</body>
+</html>
