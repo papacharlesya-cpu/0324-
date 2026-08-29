@@ -25,6 +25,15 @@ export const RemotionRoot: React.FC = () => {
         width={W}
         height={H}
       />
+      <Composition
+        id="ForesightBright"
+        component={Foresight}
+        defaultProps={{ musicFile: "music-bright.wav" }}
+        durationInFrames={TOTAL}
+        fps={FPS}
+        width={W}
+        height={H}
+      />
       <Folder name="Scenes">
         <Composition id="S1" component={S1Open} durationInFrames={150} fps={FPS} width={W} height={H} />
         <Composition id="S2" component={S2Scale} durationInFrames={270} fps={FPS} width={W} height={H} />

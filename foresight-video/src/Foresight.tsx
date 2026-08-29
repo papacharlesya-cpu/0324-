@@ -22,10 +22,12 @@ const xfade = () => (
   />
 );
 
-export const Foresight: React.FC = () => {
+export const Foresight: React.FC<{ musicFile?: string }> = ({
+  musicFile = "music.wav",
+}) => {
   return (
     <AbsoluteFill>
-      <Audio src={staticFile("music.wav")} />
+      <Audio src={staticFile(musicFile)} />
       <TransitionSeries>
       <TransitionSeries.Sequence durationInFrames={150} name="S1 開場">
         <S1Open />
