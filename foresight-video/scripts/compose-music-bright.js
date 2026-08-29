@@ -128,7 +128,7 @@ function stab(sec, midis, level) {
         phases[d] += (f0 * (1 + dets[d])) / SR;
         v += 2 * (phases[d] - Math.floor(phases[d])) - 1;
       }
-      const out = (v / 3) * env * level * 0.2;
+      const out = (v / 3) * env * level * 0.14;
       mix(i, out, out, 0.4);
     }
   }
@@ -142,7 +142,7 @@ function chime(sec, midi, level, len = 1.8) {
   for (let i = s, k = 0; k < L && i < N; i++, k++) {
     const t = k / SR;
     const mod = Math.sin((TWO_PI * f0 * 3.73 * k) / SR) * 2.2 * Math.exp(-t * 3);
-    const v = Math.sin((TWO_PI * f0 * k) / SR + mod) * Math.exp(-t * 1.9) * level * 0.16;
+    const v = Math.sin((TWO_PI * f0 * k) / SR + mod) * Math.exp(-t * 1.9) * level * 0.10;
     mix(i, v * 0.85, v, 0.55);
   }
 }
@@ -208,7 +208,7 @@ function sweep(startSec, endSec, level, octaves = 1) {
     const f = 220 * Math.pow(2, p * octaves);
     ph += (TWO_PI * f) / SR;
     const tone = Math.sin(ph) * 0.3;
-    const env = (0.25 + 0.75 * p * p) * level * 0.3;
+    const env = (0.25 + 0.75 * p * p) * level * 0.2;
     mix(i, (lpL + tone) * env, (lpR + tone) * env, 0.5);
   }
 }
@@ -222,7 +222,7 @@ function whoosh(sec, level) {
     const t = k / SR;
     const env = Math.exp(-t / 0.12) * Math.min(1, t / 0.015);
     lp += 0.2 * ((Math.random() * 2 - 1) - lp);
-    const v = lp * env * level * 0.5;
+    const v = lp * env * level * 0.3;
     mix(i, v, v, 0.5);
   }
 }
@@ -301,19 +301,19 @@ for (let t = 75.5; t < 76.35; t += BEAT / 4) kick(t, 0.8);
 
 /* ---------- 動畫轉折逐點同步 ---------- */
 // 計數器滾動（5.4–8.5）：上掃跟著數字爬，落定鐘音
-sweep(5.4, 8.5, 0.8, 2);
-chime(8.5, 84, 1.1);
+sweep(5.4, 8.5, 0.55, 2);
+chime(8.5, 84, 0.7);
 // 因果 log 四行（14.3–16.4）：上行 pluck 點
 [
   [14.3, 76],
   [15.0, 79],
   [15.7, 81],
   [16.4, 84],
-].forEach(([t, m]) => pluck(t, m, 0.9, true));
+].forEach(([t, m]) => pluck(t, m, 0.55, true));
 // chip 彈出（26.0）：鈴聲三連瀑；時間軸（27.8–29.8）小上掃
-chime(26.0, 88, 0.7, 1.2);
-chime(26.15, 91, 0.6, 1.2);
-chime(26.3, 96, 0.8, 1.6);
+chime(26.0, 88, 0.45, 1.2);
+chime(26.15, 91, 0.4, 1.2);
+chime(26.3, 96, 0.5, 1.6);
 sweep(27.8, 29.8, 0.5, 1);
 // 三層引擎逐層亮（33.5/34.3/35.2）：上行 stab
 stab(33.5, [53, 57, 60], 0.8);
@@ -323,27 +323,27 @@ stab(35.2, [55, 59, 62, 67], 1.0);
 sweep(38.8, 40.0, 0.9, 2);
 // 打字（43.1–45.6）：16 分 hat 細碎；送出（45.7）whoosh+chime
 for (let t = 43.1; t < 45.6; t += BEAT / 4) hat(t, 0.4);
-whoosh(45.7, 0.9);
-chime(45.75, 88, 0.9);
+whoosh(45.7, 0.6);
+chime(45.75, 88, 0.55);
 // 引擎三步（50.4/51.5/52.5）stab；預測帶（53.3–54.3）→ 54.4 chime
 stab(50.4, [53, 57, 60], 0.7);
 stab(51.5, [55, 60, 64], 0.8);
 stab(52.5, [55, 59, 62], 0.9);
 sweep(53.3, 54.3, 0.6, 1);
-chime(54.4, 91, 0.9);
+chime(54.4, 91, 0.55);
 // 執行 log 四行（60.0–62.6）pluck 點；核准（64.4）全曲最暖大和弦
 [
   [60.0, 77],
   [60.9, 79],
   [61.7, 81],
   [62.6, 84],
-].forEach(([t, m]) => pluck(t, m, 0.9, false));
-stab(64.4, [41, 53, 57, 60, 64], 1.2); // Fmaj add9
-chime(64.45, 89, 1.0, 2.2);
+].forEach(([t, m]) => pluck(t, m, 0.55, false));
+stab(64.4, [41, 53, 57, 60, 64], 0.9); // Fmaj add9
+chime(64.45, 89, 0.6, 2.2);
 // 曲線爬升（69.7–73.1）長上掃；73.2 終點 chime；71.0 異常一記低音色
 sweep(69.7, 73.1, 0.7, 2);
 pluck(71.0, 64, 0.9, true); // 異常：短暫暗色
-chime(73.2, 96, 1.0);
+chime(73.2, 96, 0.6);
 // 終盤 riser
 sweep(73.5, 76.38, 1.1, 2);
 
