@@ -13,7 +13,7 @@ const LOGS: Array<[string, string]> = [
 
 export const D3Execute: React.FC = () => {
   const frame = useCurrentFrame();
-  const approveAt = 196;
+  const approveAt = 124;
   return (
     <Stage>
       <Push durationInFrames={DUR.d3} amount={1.025}>
@@ -21,8 +21,8 @@ export const D3Execute: React.FC = () => {
           style={{ alignItems: "center", justifyContent: "center", gap: 40 }}
         >
           <Eyebrow from={4}>DEMO 3/4 · 直接動手</Eyebrow>
-          <StaggerHeadline from={14} lines={["然後它動手，你只要點頭。"]} size={92} />
-          <DemoWindow from={54} height={560}>
+          <StaggerHeadline from={8} perChar={1.6} lines={["然後它動手，你只要點頭。"]} size={92} />
+          <DemoWindow from={26} height={560}>
             <div
               style={{
                 position: "absolute",
@@ -35,7 +35,7 @@ export const D3Execute: React.FC = () => {
               }}
             >
               {LOGS.map(([mark, text], i) => {
-                const at = 84 + i * 26;
+                const at = 40 + i * 18;
                 const isPause = mark === "⏸";
                 return (
                   <div

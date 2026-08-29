@@ -17,9 +17,9 @@ export const D4Loop: React.FC = () => {
   const path = points
     .map(([X, Y], i) => `${i === 0 ? "M" : "L"}${X},${Y}`)
     .join(" ");
-  const draw = clamp(frame, [86, 190], [0, 1], EASE);
-  const anomalyOn = clamp(frame, [126, 142], [0, 1]);
-  const fixOn = clamp(frame, [152, 168], [0, 1]);
+  const draw = clamp(frame, [42, 118], [0, 1], EASE);
+  const anomalyOn = clamp(frame, [66, 82], [0, 1]);
+  const fixOn = clamp(frame, [86, 102], [0, 1]);
   return (
     <Stage>
       <Push durationInFrames={DUR.d4} amount={1.025}>
@@ -27,8 +27,8 @@ export const D4Loop: React.FC = () => {
           style={{ alignItems: "center", justifyContent: "center", gap: 40 }}
         >
           <Eyebrow from={4}>DEMO 4/4 · 全天候</Eyebrow>
-          <StaggerHeadline from={14} lines={["上線之後，它一直盯著。"]} size={92} />
-          <DemoWindow from={54} height={540}>
+          <StaggerHeadline from={8} perChar={1.6} lines={["上線之後，它一直盯著。"]} size={92} />
+          <DemoWindow from={26} height={540}>
             <div
               style={{
                 position: "absolute",
@@ -131,7 +131,7 @@ export const D4Loop: React.FC = () => {
                   </text>
                 </g>
                 {/* 終點強調 */}
-                <g opacity={clamp(frame, [192, 208], [0, 1])}>
+                <g opacity={clamp(frame, [122, 138], [0, 1])}>
                   <circle
                     cx={px(5)}
                     cy={py(DATA[5])}
@@ -157,8 +157,8 @@ export const D4Loop: React.FC = () => {
                 style={{
                   display: "flex",
                   gap: 22,
-                  opacity: clamp(frame, [214, 234], [0, 1]),
-                  translate: `0px ${clamp(frame, [214, 236], [22, 0])}px`,
+                  opacity: clamp(frame, [146, 164], [0, 1]),
+                  translate: `0px ${clamp(frame, [146, 166], [22, 0])}px`,
                 }}
               >
                 {["6 週 ROAS 2.3，高於預期", "異常到修正：4 小時", "全程留有紀錄，可回放"].map(

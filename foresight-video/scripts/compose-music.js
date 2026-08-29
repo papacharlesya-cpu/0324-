@@ -21,7 +21,7 @@ const fs = require("fs");
 const path = require("path");
 
 const SR = 48000;
-const DUR = 84.5;
+const DUR = 71.5;
 const N = Math.round(SR * DUR);
 const BEAT = 0.6; // 100 BPM，四分音符
 const TWO_PI = Math.PI * 2;
@@ -212,11 +212,11 @@ piano(2.3, 76, 0.9);
 drone(0, 5.6, 33, 0.45);
 
 // ── 管風琴和弦鋪底：4.8 起每小節，音量階梯式上升
-for (let t = 4.8; t < 76.3; t += BAR) {
+for (let t = 4.8; t < 63.3; t += BAR) {
   if (t >= 38.8 && t < 40.0) continue;
   const c = chordAt(t);
   const lvl =
-    t < 13.2 ? 0.5 : t < 22.8 ? 0.62 : t < 30.4 ? 0.75 : t < 40 ? 0.85 : t < 57.2 ? 0.9 : t < 66.8 ? 1.0 : 1.3;
+    t < 13.2 ? 0.5 : t < 22.8 ? 0.62 : t < 30.4 ? 0.75 : t < 40 ? 0.85 : t < 51.2 ? 0.9 : t < 56.8 ? 1.0 : 1.3;
   organChord(t, BAR - 0.1, c.chord, lvl, 0.3, 1.0);
   // 22.8 起加低音管
   if (t >= 22.8) organNote(t, BAR - 0.1, c.bass + 12, lvl * 0.9, 0.25, 0.9, 0.3);
@@ -225,24 +225,24 @@ for (let t = 4.8; t < 76.3; t += BAR) {
 organChord(38.8, 1.1, [57, 60, 64], 0.7, 0.25, 0.9);
 
 // ── 四分音符脈衝：全曲心臟，4.8 → 76.3 從不間斷（懸浮段除外）
-for (let t = 4.8; t < 76.3; t += BEAT) {
+for (let t = 4.8; t < 63.3; t += BEAT) {
   if (t >= 38.8 && t < 40.0) continue;
   const c = chordAt(t);
-  const lvl = t < 13.2 ? 0.5 : t < 30.4 ? 0.62 : t < 40 ? 0.7 : t < 66.8 ? 0.78 : 0.88;
+  const lvl = t < 13.2 ? 0.5 : t < 30.4 ? 0.62 : t < 40 ? 0.7 : t < 56.8 ? 0.78 : 0.88;
   organPulse(t, c.root + 12, lvl);
   // 22.8 起低八度加倍
   if (t >= 22.8) organPulse(t, c.root, lvl * 0.75);
 }
 
 // ── 琶音：13.2 起八分，57.2 起十六分（同一網格細分，永不切分）
-for (let t = 13.2; t < 76.3; t += BEAT / 2) {
+for (let t = 13.2; t < 63.3; t += BEAT / 2) {
   if (t >= 38.8 && t < 40.0) continue;
   const c = chordAt(t);
   const step = Math.round((t - 13.2) / (BEAT / 2));
   const tones = [c.chord[0], c.chord[1], c.chord[2], c.chord[1]];
-  const lvl = t < 22.8 ? 0.4 : t < 40 ? 0.5 : t < 66.8 ? 0.55 : 0.62;
+  const lvl = t < 22.8 ? 0.4 : t < 40 ? 0.5 : t < 56.8 ? 0.55 : 0.62;
   organNote(t, 0.2, tones[step % 4] + 12, lvl, 0.015, 0.1, 0.35);
-  if (t >= 57.2) {
+  if (t >= 51.2) {
     // 十六分：半拍再插一個音
     organNote(t + BEAT / 4, 0.13, tones[(step + 2) % 4] + 12, lvl * 0.7, 0.012, 0.08, 0.35);
   }
@@ -250,41 +250,38 @@ for (let t = 13.2; t < 76.3; t += BEAT / 2) {
 
 // ── 心跳鼓：22.8 起每兩拍，40 起每拍（貼脈衝網格，無 backbeat）
 for (let t = 22.8; t < 38.8; t += BEAT * 2) heart(t, 0.5);
-for (let t = 40.0; t < 76.3; t += BEAT) heart(t, t < 66.8 ? 0.6 : 0.9);
+for (let t = 40.0; t < 63.3; t += BEAT) heart(t, t < 56.8 ? 0.6 : 0.9);
 
 // ── 旋律線：30.4 起長音級進（Interstellar 式），40 起上八度
 const MELODY = [
   [30.4, 69, 4.8],
   [35.2, 71, 3.4],
-  [40.0, 81, 4.8],
-  [44.8, 83, 4.8],
-  [49.6, 84, 4.8],
-  [54.4, 83, 2.4],
-  [57.2, 84, 4.8],
-  [62.0, 88, 4.8],
-  [66.8, 84, 4.8],
-  [71.6, 88, 4.6],
+  [40.0, 81, 4.6],
+  [44.6, 83, 4.4],
+  [49.0, 84, 2.2],
+  [51.2, 86, 5.6],
+  [56.8, 88, 6.4],
 ];
 for (const [t, m, len] of MELODY) {
-  organNote(t, len - 0.2, m, t < 40 ? 0.5 : t < 66.8 ? 0.62 : 0.85, 0.5, 1.4, 0.5);
+  organNote(t, len - 0.2, m, t < 40 ? 0.5 : t < 56.8 ? 0.62 : 0.85, 0.5, 1.4, 0.5);
 }
 
 // ── 滴答持續整段 demo（諾蘭的錶）
-for (let t = 40.0; t < 76.3; t += BEAT / 2) tick(t, 0.16);
+for (let t = 40.0; t < 63.3; t += BEAT / 2) tick(t, 0.16);
 for (let t = 38.8; t < 40.0; t += BEAT / 2) tick(t, 0.7);
 
 // ── Shepard tone：62 秒起鋪到 76.4，終盤的無限上升
-shepard(62.0, 14.4, 1.5);
+shepard(51.5, 11.9, 1.5);
 
 // ── S7 揭示（76.4 硬切 → 巨浪漸強，不用爆擊）
-const cutS = at(76.38);
-const cutE = at(76.5);
-organChord(76.5, 5.6, [45, 57, 60, 64, 71], 1.8, 1.1, 2.4, 0.55); // Am add9 巨浪
-drone(76.5, 7.6, 33, 1.5);
-heart(76.55, 1.0);
-piano(78.4, 69, 1.1, 3.0);
-piano(79.6, 72, 1.0, 3.0);
-piano(80.8, 76, 1.25, 3.5);
+const cutS = at(63.38);
+const cutE = at(63.5);
+organChord(63.5, 5.6, [45, 57, 60, 64, 71], 1.8, 1.1, 2.4, 0.55); // Am add9 巨浪
+drone(63.5, 7.6, 33, 1.5);
+heart(63.55, 1.0);
+piano(65.4, 69, 1.1, 3.0);
+piano(66.6, 72, 1.0, 3.0);
+piano(67.8, 76, 1.25, 3.5);
 
 /* ---------- Schroeder 殘響 ---------- */
 function reverb(input, combTunings) {
@@ -341,7 +338,7 @@ for (let i = 0; i < N; i++) {
 }
 const norm = 0.92 / peak;
 const fadeIn = at(0.04);
-const fadeOutStart = at(82.8);
+const fadeOutStart = at(69.8);
 for (let i = 0; i < N; i++) {
   let g = norm;
   if (i < fadeIn) g *= i / fadeIn;

@@ -47,19 +47,19 @@ export const Foresight: React.FC = () => {
         <S5Engine />
       </TransitionSeries.Sequence>
       {xfade()}
-      <TransitionSeries.Sequence durationInFrames={240} name="D1 說需求">
+      <TransitionSeries.Sequence durationInFrames={150} name="D1 說需求">
         <D1Ask />
       </TransitionSeries.Sequence>
       {xfade()}
-      <TransitionSeries.Sequence durationInFrames={300} name="D2 引擎思考">
+      <TransitionSeries.Sequence durationInFrames={210} name="D2 引擎思考">
         <D2Think />
       </TransitionSeries.Sequence>
       {xfade()}
-      <TransitionSeries.Sequence durationInFrames={300} name="D3 動手執行">
+      <TransitionSeries.Sequence durationInFrames={180} name="D3 動手執行">
         <D3Execute />
       </TransitionSeries.Sequence>
       {xfade()}
-      <TransitionSeries.Sequence durationInFrames={300} name="D4 成效回圈">
+      <TransitionSeries.Sequence durationInFrames={210} name="D4 成效回圈">
         <D4Loop />
       </TransitionSeries.Sequence>
       {xfade()}
