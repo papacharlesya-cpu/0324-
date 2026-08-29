@@ -1,14 +1,17 @@
 /*
- * Foresight teaser 原創配樂合成器（純 Node、無相依套件）
+ * Foresight teaser 電影預告片級配樂合成器 v2（純 Node、無相依套件）
  * 產出 public/music.wav：48kHz 16-bit 立體聲，84.5 秒
- * 結構對齊影片場景：
- *   0.0  S1 開場（暗湧 drone）
- *   4.6  S2 資料規模（和弦、脈衝進場）
- *  13.2  S3 因果（琶音進場）
- *  22.8  S4 十五年（心跳鼓點）
- *  30.4  S5 引擎（拉升、閃爍高音）
- *  40.0  D1-D4 demo（four-on-floor 律動）
- *  76.4  S7 揭示（全收，重擊 + 長音，尾奏淡出）
+ *
+ * Trailer 結構（對齊影片場景）：
+ *   0.0  S1  低頻 drone + 鋼琴動機 + 時鐘滴答
+ *   4.6  S2  boom！弦樂 ostinato 進場、太鼓 1/3 拍
+ *  13.2  S3  boom！和聲 Am-F-Dm-E 循環、上八度弦樂
+ *  22.8  S4  boom！太鼓加倍、backbeat 軍鼓
+ *  30.4  S5  第一波高潮
+ *  38.2       ── 全部抽掉：只剩滴答 + riser（The Drop）──
+ *  40.0  D1  boom！律動全開，braam 打點每個 demo 場景
+ *  66.8  D4  升 key 小三度（Cm-Ab-Fm-G）、太鼓加速 4分→8分→16分
+ *  76.4  S7  硬切靜音 0.15s → 巨型 boom + 最長 braam、鋼琴動機回歸、尾奏
  */
 const fs = require("fs");
 const path = require("path");
@@ -17,253 +20,396 @@ const SR = 48000;
 const DUR = 84.5;
 const N = Math.round(SR * DUR);
 const BEAT = 0.6; // 100 BPM
-
-const padL = new Float64Array(N);
-const padR = new Float64Array(N);
-const arpL = new Float64Array(N);
-const arpR = new Float64Array(N);
-const drmL = new Float64Array(N);
-const drmR = new Float64Array(N);
-const fxL = new Float64Array(N);
-const fxR = new Float64Array(N);
-const subM = new Float64Array(N);
-
 const TWO_PI = Math.PI * 2;
 const at = (sec) => Math.max(0, Math.min(N, Math.round(sec * SR)));
+const n2f = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
 
-/* ---------- 和聲 ---------- */
-// [root, voicing...]（Hz）
-const CH = {
-  Am: { sub: 55.0, notes: [110.0, 220.0, 261.63, 329.63] },
-  F: { sub: 43.65, notes: [87.31, 174.61, 220.0, 261.63] },
-  C: { sub: 65.41, notes: [130.81, 196.0, 261.63, 329.63] },
-  G: { sub: 49.0, notes: [98.0, 196.0, 246.94, 293.66] },
-};
-const PROG = ["Am", "F", "C", "G"];
+/* 乾聲 bus 與殘響 send bus（各自立體聲） */
+const dryL = new Float64Array(N);
+const dryR = new Float64Array(N);
+const wetL = new Float64Array(N);
+const wetR = new Float64Array(N);
 
-/* 柔和鋸齒 pad：6 個諧波 1/k^1.6，雙層微失諧做立體寬度 */
-function pad(startSec, lenSec, chord, level) {
-  const s = at(startSec);
-  const e = at(startSec + lenSec + 1.6); // 含 release
-  const atk = 1.2 * SR;
-  const rel = 1.5 * SR;
-  const bodyEnd = at(startSec + lenSec) - s;
-  for (const f of CH[chord].notes) {
-    for (const [buf, det] of [
-      [padL, 1 - 0.0016],
-      [padR, 1 + 0.0016],
-    ]) {
-      const ph = Math.random() * TWO_PI;
-      const w = (TWO_PI * f * det) / SR;
-      for (let i = s; i < e && i < N; i++) {
-        const k = i - s;
-        let env = k < atk ? k / atk : 1;
-        if (k > bodyEnd) env *= Math.max(0, 1 - (k - bodyEnd) / rel);
-        if (env <= 0) continue;
-        let v = 0;
-        for (let h = 1; h <= 6; h++)
-          v += Math.sin(w * h * i + ph * h) / Math.pow(h, 1.6);
-        buf[i] += v * env * level * 0.055;
+function mix(i, l, r, send) {
+  dryL[i] += l;
+  dryR[i] += r;
+  wetL[i] += l * send;
+  wetR[i] += r * send;
+}
+
+/* ---------- 樂器 ---------- */
+
+/* 低頻 boom：60→28Hz 掃頻 + 長衰減，段落標點 */
+function boom(sec, level, len = 2.2) {
+  const s = at(sec);
+  const L = Math.round(len * SR);
+  let ph = 0;
+  for (let i = s, k = 0; k < L && i < N; i++, k++) {
+    const t = k / SR;
+    const f = 28 + 32 * Math.exp(-t / 0.09);
+    ph += (TWO_PI * f) / SR;
+    const env = Math.exp(-t / (len * 0.32));
+    const v = Math.sin(ph) * env * level * 0.85;
+    // 前 30ms 加一點 click 讓打擊點清楚
+    const click = t < 0.03 ? (Math.random() * 2 - 1) * (1 - t / 0.03) * level * 0.25 : 0;
+    mix(i, v + click, v + click, 0.55);
+  }
+}
+
+/* Braam：7 層失諧鋸齒過 tanh 失真，慢起音、濾波漸開 */
+function braam(sec, rootMidi, level, len = 2.8) {
+  const s = at(sec);
+  const L = Math.round(len * SR);
+  const f0 = n2f(rootMidi);
+  const dets = [-0.012, -0.007, -0.003, 0, 0.003, 0.007, 0.012];
+  for (const [chan, sign] of [[0, -1], [1, 1]]) {
+    let lp = 0;
+    const phases = dets.map(() => Math.random());
+    for (let i = s, k = 0; k < L && i < N; i++, k++) {
+      const t = k / SR;
+      const atk = Math.min(1, t / 0.7);
+      const rel = t > len - 0.9 ? Math.max(0, (len - t) / 0.9) : 1;
+      let v = 0;
+      for (let d = 0; d < dets.length; d++) {
+        const f = f0 * (1 + dets[d] * (1 + 0.2 * sign));
+        phases[d] += f / SR;
+        v += 2 * (phases[d] - Math.floor(phases[d])) - 1;
       }
+      v = Math.tanh(v * 0.9);
+      const cut = 0.03 + 0.12 * atk; // 濾波隨起音打開
+      lp += cut * (v - lp);
+      const out = lp * atk * rel * level * 0.52;
+      if (chan === 0) mix(i, out, out * 0.4, 0.5);
+      else mix(i, 0, out * 0.6, 0.5);
     }
   }
 }
 
-/* Sub 正弦，跟和弦根音 */
-function sub(startSec, lenSec, freq, level) {
-  const s = at(startSec);
-  const e = at(startSec + lenSec + 0.6);
-  const atk = 0.4 * SR;
-  const bodyEnd = at(startSec + lenSec) - s;
-  const rel = 0.6 * SR;
-  const w = (TWO_PI * freq) / SR;
-  for (let i = s; i < e && i < N; i++) {
-    const k = i - s;
-    let env = k < atk ? k / atk : 1;
-    if (k > bodyEnd) env *= Math.max(0, 1 - (k - bodyEnd) / rel);
-    subM[i] += Math.sin(w * i) * env * level * 0.16;
-  }
-}
-
-/* 琶音 pluck：基頻 + 2 倍頻，指數衰減，左右交替 */
-function pluck(startSec, freq, level, panRight) {
-  const s = at(startSec);
-  const len = Math.round(0.22 * SR);
-  const w = (TWO_PI * freq) / SR;
-  const main = panRight ? arpR : arpL;
-  const side = panRight ? arpL : arpR;
-  for (let i = s, k = 0; k < len && i < N; i++, k++) {
-    const env = Math.exp(-k / (0.05 * SR));
-    const v =
-      (Math.sin(w * i) + 0.4 * Math.sin(2 * w * i)) * env * level * 0.14;
-    main[i] += v;
-    side[i] += v * 0.45;
-  }
-}
-
-/* 鼓：正弦掃頻 kick */
-function kick(startSec, level) {
-  const s = at(startSec);
-  const len = Math.round(0.3 * SR);
-  let phase = 0;
-  for (let i = s, k = 0; k < len && i < N; i++, k++) {
-    const t = k / SR;
-    const f = 42 + 90 * Math.exp(-t / 0.045);
-    phase += (TWO_PI * f) / SR;
-    const env = Math.exp(-t / 0.11);
-    const v = Math.sin(phase) * env * level * 0.5;
-    drmL[i] += v;
-    drmR[i] += v;
-  }
-}
-
-/* 噪音 riser：結束在 endSec，最後帶一點收束 */
-function riser(endSec, lenSec, level) {
-  const e = at(endSec);
-  const s = at(endSec - lenSec);
+/* 弦樂 ostinato：5 層失諧鋸齒、8ms 起音、斷奏 */
+function stacc(sec, midi, level, gate = 0.11) {
+  const s = at(sec);
+  const L = Math.round((gate + 0.06) * SR);
+  const f0 = n2f(midi);
+  const dets = [-0.006, -0.003, 0, 0.003, 0.006];
   let lpL = 0;
   let lpR = 0;
+  const phases = dets.map(() => Math.random());
+  for (let i = s, k = 0; k < L && i < N; i++, k++) {
+    const t = k / SR;
+    const atk = Math.min(1, t / 0.008);
+    const rel = t > gate ? Math.exp(-(t - gate) / 0.03) : 1;
+    let v = 0;
+    for (let d = 0; d < dets.length; d++) {
+      phases[d] += (f0 * (1 + dets[d])) / SR;
+      v += 2 * (phases[d] - Math.floor(phases[d])) - 1;
+    }
+    v /= dets.length;
+    lpL += 0.18 * (v - lpL);
+    lpR += 0.16 * (v - lpR);
+    const e = atk * rel * level * 0.30;
+    mix(i, lpL * e, lpR * e * 0.9, 0.22);
+  }
+}
+
+/* 太鼓：厚 kick + 噪音皮聲 */
+function taiko(sec, level) {
+  const s = at(sec);
+  const L = Math.round(0.45 * SR);
+  let ph = 0;
+  let lp = 0;
+  for (let i = s, k = 0; k < L && i < N; i++, k++) {
+    const t = k / SR;
+    const f = 48 + 70 * Math.exp(-t / 0.05);
+    ph += (TWO_PI * f) / SR;
+    lp += 0.25 * ((Math.random() * 2 - 1) - lp);
+    const skin = lp * Math.exp(-t / 0.03) * 0.5;
+    const env = Math.exp(-t / 0.16);
+    const v = (Math.sin(ph) + skin) * env * level * 0.6;
+    mix(i, v, v, 0.3);
+  }
+}
+
+/* 軍鼓（backbeat）：帶通噪音短爆 */
+function snare(sec, level) {
+  const s = at(sec);
+  const L = Math.round(0.22 * SR);
+  let bp = 0;
+  let lp = 0;
+  for (let i = s, k = 0; k < L && i < N; i++, k++) {
+    const t = k / SR;
+    const n = Math.random() * 2 - 1;
+    lp += 0.35 * (n - lp);
+    bp = n - lp;
+    const env = Math.exp(-t / 0.055);
+    const v = bp * env * level * 0.4;
+    mix(i, v * 0.9, v, 0.35);
+  }
+}
+
+/* 時鐘滴答：高頻短 click */
+function tick(sec, level) {
+  const s = at(sec);
+  const L = Math.round(0.03 * SR);
+  let hp = 0;
+  let prev = 0;
+  for (let i = s, k = 0; k < L && i < N; i++, k++) {
+    const n = Math.random() * 2 - 1;
+    hp = n - prev;
+    prev = n;
+    const env = Math.exp(-k / (0.006 * SR));
+    const v = hp * env * level * 0.3;
+    mix(i, v * (k % 2 ? 1 : 0.6), v * (k % 2 ? 0.6 : 1), 0.4);
+  }
+}
+
+/* 鋼琴動機：帶不諧和度的鐘形音，情緒錨點 */
+function piano(sec, midi, level, len = 2.2) {
+  const s = at(sec);
+  const L = Math.round(len * SR);
+  const f0 = n2f(midi);
+  const partials = [
+    [1, 1],
+    [2, 0.45],
+    [3, 0.22],
+    [4.2, 0.08],
+  ];
+  const ph = partials.map(() => Math.random() * TWO_PI);
+  for (let i = s, k = 0; k < L && i < N; i++, k++) {
+    const t = k / SR;
+    let v = 0;
+    for (let p = 0; p < partials.length; p++) {
+      const [h, a] = partials[p];
+      v += Math.sin((TWO_PI * f0 * h * k) / SR + ph[p]) * a * Math.exp(-t * (1.4 + h));
+    }
+    const e = level * 0.2;
+    mix(i, v * e * 0.9, v * e, 0.5);
+  }
+}
+
+/* 持續低音 drone */
+function drone(sec, len, midi, level) {
+  const s = at(sec);
+  const L = Math.round(len * SR);
+  const f0 = n2f(midi);
+  for (let i = s, k = 0; k < L && i < N; i++, k++) {
+    const t = k / SR;
+    const edge = Math.min(1, t / 1.5, (len - t) / 1.5);
+    if (edge <= 0) continue;
+    const v =
+      (Math.sin((TWO_PI * f0 * k) / SR) + 0.5 * Math.sin((TWO_PI * f0 * 0.5 * k) / SR)) *
+      edge *
+      level *
+      0.14;
+    mix(i, v, v, 0.25);
+  }
+}
+
+/* 有音高的 riser：噪音 + 上掃正弦 */
+function riser(endSec, len, level) {
+  const e = at(endSec);
+  const s = at(endSec - len);
+  let lpL = 0;
+  let lpR = 0;
+  let ph = 0;
   for (let i = s; i < e && i < N; i++) {
     const p = (i - s) / (e - s);
-    const cutoff = 0.02 + 0.3 * p * p; // 濾波隨進度打開
-    lpL += cutoff * ((Math.random() * 2 - 1) - lpL);
-    lpR += cutoff * ((Math.random() * 2 - 1) - lpR);
+    const cut = 0.015 + 0.35 * p * p;
+    lpL += cut * ((Math.random() * 2 - 1) - lpL);
+    lpR += cut * ((Math.random() * 2 - 1) - lpR);
+    const f = 110 * Math.pow(2, p * 1.0); // 上掃一個八度
+    ph += (TWO_PI * f) / SR;
+    const tone = Math.sin(ph) * 0.35;
     const env = p * p * level * 0.5;
-    fxL[i] += lpL * env;
-    fxR[i] += lpR * env;
+    mix(i, (lpL + tone) * env, (lpR + tone) * env, 0.45);
   }
 }
 
-/* 重擊：thump + 噪音尾 + 低頻長音 */
-function impact(startSec, level) {
-  kick(startSec, level * 1.6);
-  const s = at(startSec);
-  const len = Math.round(1.6 * SR);
-  let lpL = 0;
-  let lpR = 0;
-  for (let i = s, k = 0; k < len && i < N; i++, k++) {
-    const t = k / SR;
-    const env = Math.exp(-t / 0.4) * level * 0.3;
-    lpL += 0.08 * ((Math.random() * 2 - 1) - lpL);
-    lpR += 0.08 * ((Math.random() * 2 - 1) - lpR);
-    fxL[i] += lpL * env;
-    fxR[i] += lpR * env;
-  }
-}
-
-/* 高音閃爍：五度泛音慢速顫音 */
-function shimmer(startSec, lenSec, freqs, level) {
-  const s = at(startSec);
-  const e = at(startSec + lenSec);
-  for (const f of freqs) {
-    const w = (TWO_PI * f) / SR;
-    const trem = TWO_PI / (SR * 1.9); // ~0.53Hz 顫音
-    const ph = Math.random() * TWO_PI;
-    for (let i = s; i < e && i < N; i++) {
-      const k = i - s;
-      const edge = Math.min(1, k / (2 * SR), (e - i) / (2 * SR));
-      const v =
-        Math.sin(w * i + ph) *
-        (0.6 + 0.4 * Math.sin(trem * i)) *
-        edge *
-        level *
-        0.03;
-      padL[i] += v * 0.8;
-      padR[i] += v;
-    }
-  }
-}
+/* ---------- 和聲設計 ---------- */
+// 主循環 Am-F-Dm-E（E 大和弦 = 和聲小調屬和弦，緊張感來源）
+const MAIN = [
+  { root: 45, chord: [45, 57, 60, 64] }, // Am
+  { root: 41, chord: [41, 53, 57, 60] }, // F
+  { root: 38, chord: [38, 50, 53, 57] }, // Dm
+  { root: 40, chord: [40, 52, 56, 59] }, // E（G# 升音）
+];
+// 結尾升小三度 Cm-Ab-Fm-G
+const LIFT = [
+  { root: 48, chord: [48, 60, 63, 67] }, // Cm
+  { root: 44, chord: [44, 56, 60, 63] }, // Ab
+  { root: 41, chord: [41, 53, 56, 60] }, // Fm
+  { root: 43, chord: [43, 55, 59, 62] }, // G
+];
+const chordAt = (t) => {
+  const prog = t >= 66.8 ? LIFT : MAIN;
+  const t0 = t >= 66.8 ? 66.8 : 4.8;
+  return prog[Math.floor((t - t0) / 2.4) % 4]; // 一小節一個和弦
+};
 
 /* ---------- 編曲 ---------- */
-// S1：暗湧
-pad(0, 4.8, "Am", 0.5);
-sub(0, 4.6, 55.0, 0.7);
-riser(4.6, 2.4, 0.5);
 
-// 和弦循環 4.8s 一個，從 4.8 到 76.8
-for (let i = 0; i < 15; i++) {
-  const t = 4.8 + i * 4.8;
-  const name = PROG[i % 4];
-  const lvl = t < 13.2 ? 0.75 : t < 30.4 ? 0.9 : 1.0;
-  pad(t, 4.8, name, lvl);
-  sub(t, 4.8, CH[name].sub, t < 22.8 ? 0.8 : 1.0);
-}
+// ── S1 序場（0–4.6）
+drone(0, 5.4, 33, 1.0); // A1 drone
+piano(0.5, 69, 1.0); // A4
+piano(1.4, 72, 0.9); // C5
+piano(2.3, 76, 1.0); // E5
+piano(3.2, 74, 0.8); // D5
+for (let t = 0.3; t < 4.3; t += BEAT / 2) tick(t, 0.5);
+riser(4.6, 2.8, 0.7);
 
-// S2：8 分音符單音脈衝（根音高八度）
-for (let t = 4.8; t < 13.2; t += BEAT / 2) {
-  const chord = CH[PROG[Math.floor((t - 4.8) / 4.8) % 4]];
-  pluck(t, chord.notes[0] * 2, 0.4, Math.round(t / (BEAT / 2)) % 2 === 0);
-}
-
-// S3 起：16 分琶音
-const ARP_PATTERN = [0, 1, 2, 3, 2, 1];
-for (let t = 13.2; t < 76.35; t += 0.15) {
-  const idx = Math.floor((t - 4.8) / 4.8) % 4;
-  const chord = CH[PROG[idx]];
-  const step = Math.round((t - 13.2) / 0.15);
-  const note = chord.notes[ARP_PATTERN[step % 6]] * 2;
-  const lvl = t < 22.8 ? 0.42 : t < 40 ? 0.58 : 0.7;
-  // demo 段每兩拍留一個 16 分空拍，呼吸感
-  if (t >= 40 && step % 8 === 7) continue;
-  pluck(t, note, lvl, step % 2 === 0);
-}
-
-// S4-S5：心跳（1、3 拍）
-for (let t = 22.8; t < 40; t += BEAT * 2) kick(t, 0.42);
-// demo 段：four-on-floor
-for (let t = 40.2; t < 76.2; t += BEAT) kick(t, 0.52);
-
-// S5 與 D4 的高音閃爍（A 小調五音上兩個八度）
-shimmer(30.4, 9.4, [880, 1318.5], 1.0);
-shimmer(66.8, 9.4, [880, 1046.5], 0.8);
-
-// 結構 riser
-riser(40.0, 2.6, 0.65);
-riser(76.4, 3.0, 1.0);
-
-// S7：重擊 + 終止長音
-impact(76.5, 1.0);
-pad(76.6, 6.2, "Am", 1.1);
-sub(76.6, 6.4, 55.0, 1.2);
-
-/* ---------- 琶音延遲效果（0.45s 回授） ---------- */
-const dSamp = Math.round(0.45 * SR);
-for (const [src, dst] of [
-  [arpL, arpR],
-  [arpR, arpL],
+// ── 段落 boom
+for (const [t, lv] of [
+  [4.6, 0.85],
+  [13.2, 0.9],
+  [22.8, 1.0],
+  [30.4, 1.0],
+  [40.0, 1.1],
+  [47.6, 0.8],
+  [57.2, 1.0],
+  [66.8, 1.1],
 ]) {
-  for (let i = 0; i < N - dSamp; i++) {
-    dst[i + dSamp] += src[i] * 0.3;
+  boom(t, lv);
+}
+
+// ── Braam 打點（音高跟當下和弦根音，低八度）
+for (const [t, lv, len] of [
+  [8.6, 0.6, 2.6],
+  [18.0, 0.7, 2.6],
+  [26.4, 0.8, 2.8],
+  [33.0, 0.9, 3.0],
+  [40.0, 1.0, 3.2],
+  [47.6, 0.8, 2.6],
+  [57.2, 0.95, 3.0],
+  [61.8, 0.7, 2.4],
+  [66.8, 1.0, 3.2],
+  [71.6, 0.9, 2.8],
+]) {
+  const c = chordAt(t);
+  braam(t, c.root - 12, lv, len);
+}
+
+// ── 弦樂 ostinato：16 分，音型 [根,8度,5度,8度]，drop 期間停
+const OSTI = [0, 12, 7, 12];
+for (let t = 4.8; t < 76.3; t += 0.15) {
+  if (t >= 38.2 && t < 40.0) continue; // The Drop
+  const c = chordAt(t);
+  const step = Math.round((t - 4.8) / 0.15);
+  const base = c.root + 12; // 中音域
+  const midi = base + OSTI[step % 4];
+  let lvl = t < 13.2 ? 0.55 : t < 30.4 ? 0.75 : t < 40 ? 0.9 : t < 66.8 ? 0.85 : 1.0;
+  stacc(t, midi, lvl);
+  // 22.8 之後加上八度第二層
+  if (t >= 22.8 && step % 2 === 0) stacc(t, midi + 12, lvl * 0.5, 0.09);
+}
+
+// ── 長音和聲層（弦樂 pad 感：把斷奏改長 gate 疊在小節頭）
+for (let t = 13.2; t < 76.3; t += 2.4) {
+  if (t >= 38.2 && t < 40.0) continue;
+  const c = chordAt(t);
+  for (const m of c.chord.slice(1)) stacc(t, m, 0.75, 2.1);
+}
+
+// ── Sub bass：每小節跟根音，填滿低頻
+for (let t = 4.8; t < 76.3; t += 2.4) {
+  if (t >= 38.2 && t < 40.0) continue;
+  const c = chordAt(t);
+  drone(t, 2.5, c.root - 12, t < 22.8 ? 0.9 : 1.3);
+}
+
+// ── 打擊
+// S2：太鼓 1、3 拍
+for (let t = 4.8; t < 22.8; t += BEAT * 2) taiko(t, 0.6);
+// S4 起：太鼓每拍 + backbeat 軍鼓
+for (let t = 22.8; t < 38.2; t += BEAT) taiko(t, 0.7);
+for (let t = 22.8 + BEAT; t < 38.2; t += BEAT * 2) snare(t, 0.5);
+// demo 段：全開
+for (let t = 40.0; t < 71.0; t += BEAT) taiko(t, 0.8);
+for (let t = 40.0 + BEAT; t < 71.0; t += BEAT * 2) snare(t, 0.6);
+for (let t = 40.0; t < 71.0; t += BEAT / 2) tick(t, 0.25);
+// 終盤加速：4 分 → 8 分 → 16 分
+for (let t = 71.0; t < 73.4; t += BEAT) taiko(t, 0.85);
+for (let t = 73.4; t < 75.2; t += BEAT / 2) taiko(t, 0.9);
+for (let t = 75.2; t < 76.35; t += BEAT / 4) taiko(t, 1.0);
+
+// ── The Drop（38.2–40）：只剩滴答與 riser
+for (let t = 38.3; t < 39.9; t += BEAT / 2) tick(t, 0.7);
+riser(40.0, 3.2, 0.9);
+
+// ── 終盤大 riser
+riser(76.4, 3.6, 1.15);
+
+// ── S7 揭示（76.4 硬切 → 76.55 巨擊）
+boom(76.55, 1.4, 3.5);
+braam(76.6, 33 - 0 + 12, 1.1, 4.5); // A2
+drone(76.6, 7.4, 33, 1.4);
+// 鋼琴動機回歸（放慢、大殘響）
+piano(78.2, 69, 1.1, 3.0);
+piano(79.4, 72, 1.0, 3.0);
+piano(80.6, 76, 1.2, 3.5);
+
+/* ---------- 硬切靜音（76.38–76.53）：揭示前的抽真空 ---------- */
+const cutS = at(76.38);
+const cutE = at(76.53);
+
+/* ---------- Schroeder 殘響（4 comb + 2 allpass / 聲道） ---------- */
+function reverb(input, combTunings) {
+  const out = new Float64Array(N);
+  const combs = combTunings.map((len) => ({
+    buf: new Float64Array(len),
+    idx: 0,
+    filt: 0,
+  }));
+  const FB = 0.86;
+  const DAMP = 0.28;
+  const apTunings = [225, 556].map((x) => Math.round((x * SR) / 44100));
+  const aps = apTunings.map((len) => ({ buf: new Float64Array(len), idx: 0 }));
+  for (let i = 0; i < N; i++) {
+    const x = input[i];
+    let acc = 0;
+    for (const c of combs) {
+      const y = c.buf[c.idx];
+      c.filt = y * (1 - DAMP) + c.filt * DAMP;
+      c.buf[c.idx] = x + c.filt * FB;
+      c.idx = (c.idx + 1) % c.buf.length;
+      acc += y;
+    }
+    let v = acc * 0.25;
+    for (const a of aps) {
+      const y = a.buf[a.idx];
+      const z = v + y * 0.5;
+      a.buf[a.idx] = z;
+      a.idx = (a.idx + 1) % a.buf.length;
+      v = y - z * 0.5;
+    }
+    out[i] = v;
   }
+  return out;
 }
+const combL = [1557, 1617, 1491, 1422].map((x) => Math.round((x * SR) / 44100));
+const combR = [1580, 1641, 1514, 1445].map((x) => Math.round((x * SR) / 44100));
+console.log("rendering reverb…");
+const revL = reverb(wetL, combL);
+const revR = reverb(wetR, combR);
 
-/* ---------- Sidechain：鼓點時 pad/arp 閃避 ---------- */
-function duckGain(tSec) {
-  let region = null;
-  if (tSec >= 22.8 && tSec < 40) region = [22.8, BEAT * 2];
-  else if (tSec >= 40.2 && tSec < 76.2) region = [40.2, BEAT];
-  if (!region) return 1;
-  const phase = (tSec - region[0]) % region[1];
-  return 1 - 0.28 * Math.exp(-phase / 0.1);
-}
-
-/* ---------- 混音、軟限幅、正規化 ---------- */
+/* ---------- 混音、母帶 ---------- */
 const outL = new Float64Array(N);
 const outR = new Float64Array(N);
 let peak = 0;
 for (let i = 0; i < N; i++) {
-  const g = duckGain(i / SR);
-  let l = (padL[i] + arpL[i]) * g + drmL[i] + fxL[i] + subM[i];
-  let r = (padR[i] + arpR[i]) * g + drmR[i] + fxR[i] + subM[i];
-  l = Math.tanh(l * 1.15);
-  r = Math.tanh(r * 1.15);
+  let l = dryL[i] + revL[i] * 0.9;
+  let r = dryR[i] + revR[i] * 0.9;
+  if (i >= cutS && i < cutE) {
+    l = 0;
+    r = 0;
+  }
+  l = Math.tanh(l * 1.2);
+  r = Math.tanh(r * 1.2);
   outL[i] = l;
   outR[i] = r;
   peak = Math.max(peak, Math.abs(l), Math.abs(r));
 }
-const norm = 0.89 / peak;
-const fadeIn = at(0.05);
-const fadeOutStart = at(83.0);
+const norm = 0.92 / peak;
+const fadeIn = at(0.04);
+const fadeOutStart = at(82.6);
 for (let i = 0; i < N; i++) {
   let g = norm;
   if (i < fadeIn) g *= i / fadeIn;
@@ -272,17 +418,17 @@ for (let i = 0; i < N; i++) {
   outR[i] *= g;
 }
 
-/* ---------- 檢查：每 5 秒 RMS ---------- */
-for (let w = 0; w < DUR; w += 5) {
+/* ---------- 檢查：每 2.5 秒 RMS（要看得到 38.2 的 drop 與 76.4 的硬切） ---------- */
+for (let w = 0; w < DUR; w += 2.5) {
   const s = at(w);
-  const e = at(Math.min(w + 5, DUR));
+  const e = at(Math.min(w + 2.5, DUR));
   let sum = 0;
   for (let i = s; i < e; i++) sum += outL[i] * outL[i] + outR[i] * outR[i];
   const rms = Math.sqrt(sum / (2 * (e - s)));
-  console.log(`${String(w).padStart(4)}s  RMS ${rms.toFixed(3)}  ${"#".repeat(Math.round(rms * 120))}`);
+  console.log(`${w.toFixed(1).padStart(5)}s  RMS ${rms.toFixed(3)}  ${"#".repeat(Math.round(rms * 110))}`);
 }
 
-/* ---------- 寫 WAV（16-bit PCM） ---------- */
+/* ---------- 寫 WAV ---------- */
 const bytes = Buffer.alloc(44 + N * 4);
 bytes.write("RIFF", 0);
 bytes.writeUInt32LE(36 + N * 4, 4);
@@ -302,6 +448,5 @@ for (let i = 0; i < N; i++) {
   bytes.writeInt16LE(Math.round(Math.max(-1, Math.min(1, outR[i])) * 32767), 46 + i * 4);
 }
 const out = path.join(__dirname, "..", "public", "music.wav");
-fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, bytes);
 console.log(`\nWrote ${out} (${(bytes.length / 1e6).toFixed(1)} MB, peak norm ${norm.toFixed(2)})`);
