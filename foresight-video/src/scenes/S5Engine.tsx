@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { C, DUR, FONT_MONO, FONT_TC } from "../theme";
-import { Eyebrow, Push, Stage, StaggerHeadline, clamp } from "../ui";
+import { Eyebrow, PopIn, Push, Stage, clamp } from "../ui";
 
 const LAYERS = [
   {
@@ -33,11 +33,10 @@ export const S5Engine: React.FC = () => {
           style={{ alignItems: "center", justifyContent: "center", gap: 40 }}
         >
           <Eyebrow from={4}>THE ENGINE</Eyebrow>
-          <StaggerHeadline
-            from={16}
-            lines={["不是儀表板，是會動手的引擎。"]}
-            size={92}
-          />
+          <div style={{ display: "flex", gap: "0.5em", alignItems: "baseline" }}>
+            <PopIn from={12} size={120}>會想。</PopIn>
+            <PopIn from={38} size={120}>也會動手。</PopIn>
+          </div>
           <div
             style={{
               display: "flex",

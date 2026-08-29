@@ -103,7 +103,7 @@ export const S2Scale: React.FC = () => {
               translate: `0px ${clamp(frame, [40, 66], [22, 0])}px`,
             }}
           >
-            筆 Meta 成效資料，流進集團
+            筆廣告成效數據，它全看過。
           </div>
           <Foot from={130}>聚合統計 · 去識別化</Foot>
         </AbsoluteFill>

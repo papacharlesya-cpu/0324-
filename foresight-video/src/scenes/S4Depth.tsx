@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { C, DUR, FONT_MONO, FONT_TC } from "../theme";
-import { Eyebrow, Push, Stage, StaggerHeadline, clamp } from "../ui";
+import { Eyebrow, PopIn, Push, Stage, Sub, clamp } from "../ui";
 
 const CHIPS = [
   "零售",
@@ -25,11 +25,8 @@ export const S4Depth: React.FC = () => {
           style={{ alignItems: "center", justifyContent: "center", gap: 44 }}
         >
           <Eyebrow from={4}>DEPTH · SINCE 2011</Eyebrow>
-          <StaggerHeadline
-            from={16}
-            lines={["十五年，四百多個帳戶，", "全部自己動手。"]}
-            size={100}
-          />
+          <PopIn from={8} size={190}>15 年。</PopIn>
+          <Sub from={26}>老手的判斷，全部教給它。</Sub>
           <div
             style={{
               display: "flex",

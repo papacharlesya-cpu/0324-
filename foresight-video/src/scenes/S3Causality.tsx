@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { C, DUR, FONT_MONO } from "../theme";
-import { Eyebrow, Foot, Push, Stage, StaggerHeadline, Sub, clamp } from "../ui";
+import { Eyebrow, Foot, PopIn, Push, Stage, Sub, clamp } from "../ui";
 
 const ROWS: Array<[string, string]> = [
   ["調預算 +20%", "ROAS 2.1 ▸ 2.6"],
@@ -19,14 +19,8 @@ export const S3Causality: React.FC = () => {
           style={{ alignItems: "center", justifyContent: "center", gap: 34 }}
         >
           <Eyebrow from={4}>CAUSALITY · 不只是數據</Eyebrow>
-          <StaggerHeadline
-            from={18}
-            lines={["數據誰都有，", "因果只有我們有。"]}
-            size={104}
-          />
-          <Sub from={92}>
-            數百萬筆操作紀錄：做了什麼、發生了什麼，全部留下來。
-          </Sub>
+          <PopIn from={8} size={170}>它記得。</PopIn>
+          <Sub from={24}>每一次調整、每一個結果，全都留著。</Sub>
           <div
             style={{
               display: "flex",
@@ -39,7 +33,7 @@ export const S3Causality: React.FC = () => {
             }}
           >
             {ROWS.map(([act, res], i) => {
-              const start = 130 + i * 22;
+              const start = 40 + i * 22;
               return (
                 <div
                   key={i}
@@ -61,7 +55,7 @@ export const S3Causality: React.FC = () => {
               );
             })}
           </div>
-          <Foot from={236}>示意資料</Foot>
+          <Foot from={150}>示意資料</Foot>
         </AbsoluteFill>
       </Push>
     </Stage>

@@ -148,6 +148,33 @@ export const Foot: React.FC<{ from: number; children: string }> = ({
   );
 };
 
+/* 撞入大字：overshoot 彈跳，蘋果式重點字 */
+export const BACK = Easing.bezier(0.34, 1.56, 0.64, 1);
+export const PopIn: React.FC<{
+  from: number;
+  size?: number;
+  children: React.ReactNode;
+}> = ({ from, size = 170, children }) => {
+  const frame = useCurrentFrame();
+  return (
+    <div
+      style={{
+        fontFamily: FONT_TC,
+        fontWeight: 900,
+        fontSize: size,
+        lineHeight: 1.15,
+        letterSpacing: "0.03em",
+        color: C.ink,
+        textAlign: "center",
+        opacity: clamp(frame, [from, from + 7], [0, 1], Easing.linear),
+        scale: String(clamp(frame, [from, from + 16], [1.35, 1], BACK)),
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
 /* 緩慢推鏡：整幕輕微放大，鏡頭感 */
 export const Push: React.FC<{
   durationInFrames: number;
