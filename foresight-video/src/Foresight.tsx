@@ -1,4 +1,6 @@
 import React from "react";
+import { AbsoluteFill, staticFile } from "remotion";
+import { Audio } from "@remotion/media";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 import { DUR } from "./theme";
@@ -22,7 +24,9 @@ const xfade = () => (
 
 export const Foresight: React.FC = () => {
   return (
-    <TransitionSeries>
+    <AbsoluteFill>
+      <Audio src={staticFile("music.wav")} />
+      <TransitionSeries>
       <TransitionSeries.Sequence durationInFrames={150} name="S1 開場">
         <S1Open />
       </TransitionSeries.Sequence>
@@ -62,6 +66,7 @@ export const Foresight: React.FC = () => {
       <TransitionSeries.Sequence durationInFrames={240} name="S7 收尾">
         <S7Close />
       </TransitionSeries.Sequence>
-    </TransitionSeries>
+      </TransitionSeries>
+    </AbsoluteFill>
   );
 };
