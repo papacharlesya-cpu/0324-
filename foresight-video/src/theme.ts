@@ -40,10 +40,23 @@ export const DUR = {
   s3: 300,
   s4: 240,
   s5: 300,
-  s6: 360,
+  d1: 240,
+  d2: 300,
+  d3: 300,
+  d4: 300,
   s7: 240,
   fade: 12,
 } as const;
 
 export const TOTAL =
-  DUR.s1 + DUR.s2 + DUR.s3 + DUR.s4 + DUR.s5 + DUR.s6 + DUR.s7 - 6 * DUR.fade;
+  DUR.s1 +
+  DUR.s2 +
+  DUR.s3 +
+  DUR.s4 +
+  DUR.s5 +
+  DUR.d1 +
+  DUR.d2 +
+  DUR.d3 +
+  DUR.d4 +
+  DUR.s7 -
+  9 * DUR.fade;

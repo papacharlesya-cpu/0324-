@@ -7,7 +7,10 @@ import { S2Scale } from "./scenes/S2Scale";
 import { S3Causality } from "./scenes/S3Causality";
 import { S4Depth } from "./scenes/S4Depth";
 import { S5Engine } from "./scenes/S5Engine";
-import { S6Preflight } from "./scenes/S6Preflight";
+import { D1Ask } from "./scenes/D1Ask";
+import { D2Think } from "./scenes/D2Think";
+import { D3Execute } from "./scenes/D3Execute";
+import { D4Loop } from "./scenes/D4Loop";
 import { S7Close } from "./scenes/S7Close";
 
 const xfade = () => (
@@ -40,8 +43,20 @@ export const Foresight: React.FC = () => {
         <S5Engine />
       </TransitionSeries.Sequence>
       {xfade()}
-      <TransitionSeries.Sequence durationInFrames={360} name="S6 Pre-flight">
-        <S6Preflight />
+      <TransitionSeries.Sequence durationInFrames={240} name="D1 說需求">
+        <D1Ask />
+      </TransitionSeries.Sequence>
+      {xfade()}
+      <TransitionSeries.Sequence durationInFrames={300} name="D2 引擎思考">
+        <D2Think />
+      </TransitionSeries.Sequence>
+      {xfade()}
+      <TransitionSeries.Sequence durationInFrames={300} name="D3 動手執行">
+        <D3Execute />
+      </TransitionSeries.Sequence>
+      {xfade()}
+      <TransitionSeries.Sequence durationInFrames={300} name="D4 成效回圈">
+        <D4Loop />
       </TransitionSeries.Sequence>
       {xfade()}
       <TransitionSeries.Sequence durationInFrames={240} name="S7 收尾">
