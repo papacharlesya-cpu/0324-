@@ -9,7 +9,7 @@ const BRIEF =
 
 export const D1Ask: React.FC = () => {
   const frame = useCurrentFrame();
-  const sent = clamp(frame, [112, 124], [0, 1]);
+  const sent = clamp(frame, [172, 184], [0, 1]);
   return (
     <Stage>
       <Push durationInFrames={DUR.d1} amount={1.025}>
@@ -17,8 +17,8 @@ export const D1Ask: React.FC = () => {
           style={{ alignItems: "center", justifyContent: "center", gap: 40 }}
         >
           <Eyebrow from={4}>DEMO 1/4 · 想像一下</Eyebrow>
-          <StaggerHeadline from={8} perChar={1.6} lines={["跟它說你要什麼。"]} size={92} />
-          <DemoWindow from={26} height={460}>
+          <StaggerHeadline from={14} lines={["跟它說你要什麼。"]} size={92} />
+          <DemoWindow from={60} height={460}>
             <div
               style={{
                 position: "absolute",
@@ -35,7 +35,7 @@ export const D1Ask: React.FC = () => {
                   fontFamily: FONT_TC,
                   fontSize: 26,
                   color: C.ink3,
-                  opacity: clamp(frame, [36, 50], [0, 1]),
+                  opacity: clamp(frame, [78, 96], [0, 1]),
                 }}
               >
                 告訴 Foresight 你的目標
@@ -53,7 +53,7 @@ export const D1Ask: React.FC = () => {
                   background: "rgba(255,255,255,.02)",
                 }}
               >
-                <TypeText from={48} cps={24} text={BRIEF} />
+                <TypeText from={92} cps={13} text={BRIEF} />
               </div>
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <div
@@ -66,12 +66,12 @@ export const D1Ask: React.FC = () => {
                     background: C.data,
                     borderRadius: 12,
                     padding: "16px 44px",
-                    opacity: clamp(frame, [56, 72], [0.35, 1]),
+                    opacity: clamp(frame, [110, 128], [0.35, 1]),
                     scale: String(1 + 0.06 * sent * (1 - sent) * 4),
                     boxShadow: `0 0 ${40 * sent}px rgba(85,144,255,.5)`,
                   }}
                 >
-                  {frame < 118 ? "送出 ▸" : "分析中…"}
+                  {frame < 178 ? "送出 ▸" : "分析中…"}
                 </div>
               </div>
             </div>

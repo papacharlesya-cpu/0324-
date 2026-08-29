@@ -31,10 +31,10 @@ export const RemotionRoot: React.FC = () => {
         <Composition id="S3" component={S3Causality} durationInFrames={300} fps={FPS} width={W} height={H} />
         <Composition id="S4" component={S4Depth} durationInFrames={240} fps={FPS} width={W} height={H} />
         <Composition id="S5" component={S5Engine} durationInFrames={300} fps={FPS} width={W} height={H} />
-        <Composition id="D1" component={D1Ask} durationInFrames={150} fps={FPS} width={W} height={H} />
-        <Composition id="D2" component={D2Think} durationInFrames={210} fps={FPS} width={W} height={H} />
-        <Composition id="D3" component={D3Execute} durationInFrames={180} fps={FPS} width={W} height={H} />
-        <Composition id="D4" component={D4Loop} durationInFrames={210} fps={FPS} width={W} height={H} />
+        <Composition id="D1" component={D1Ask} durationInFrames={240} fps={FPS} width={W} height={H} />
+        <Composition id="D2" component={D2Think} durationInFrames={300} fps={FPS} width={W} height={H} />
+        <Composition id="D3" component={D3Execute} durationInFrames={300} fps={FPS} width={W} height={H} />
+        <Composition id="D4" component={D4Loop} durationInFrames={300} fps={FPS} width={W} height={H} />
         <Composition id="S7" component={S7Close} durationInFrames={240} fps={FPS} width={W} height={H} />
       </Folder>
     </>

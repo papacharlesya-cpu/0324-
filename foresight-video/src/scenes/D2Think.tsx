@@ -5,15 +5,15 @@ import { Eyebrow, Push, Stage, StaggerHeadline, clamp } from "../ui";
 import { DemoWindow } from "./demo";
 
 const STEPS = [
-  { color: C.data, name: "資料層", detail: "掃描同產業 2.1 億筆成效紀錄", at: 44 },
-  { color: C.judge, name: "判斷層", detail: "套用 47 條資深操作判斷規則", at: 68 },
-  { color: C.exec, name: "預測", detail: "產出區間與風險，3.2 秒", at: 92 },
+  { color: C.data, name: "資料層", detail: "掃描同產業 2.1 億筆成效紀錄", at: 84 },
+  { color: C.judge, name: "判斷層", detail: "套用 47 條資深操作判斷規則", at: 116 },
+  { color: C.exec, name: "預測", detail: "產出區間與風險，3.2 秒", at: 148 },
 ];
 
 export const D2Think: React.FC = () => {
   const frame = useCurrentFrame();
   const x = (roas: number) => 30 + (roas / 3) * 500;
-  const bandGrow = clamp(frame, [122, 150], [0, 1]);
+  const bandGrow = clamp(frame, [170, 200], [0, 1]);
   return (
     <Stage>
       <Push durationInFrames={DUR.d2} amount={1.025}>
@@ -21,8 +21,8 @@ export const D2Think: React.FC = () => {
           style={{ alignItems: "center", justifyContent: "center", gap: 40 }}
         >
           <Eyebrow from={4}>DEMO 2/4 · 引擎運轉</Eyebrow>
-          <StaggerHeadline from={8} perChar={1.6} lines={["它先想，再給你答案。"]} size={92} />
-          <DemoWindow from={26} height={560}>
+          <StaggerHeadline from={14} lines={["它先想，再給你答案。"]} size={92} />
+          <DemoWindow from={54} height={560}>
             <div
               style={{
                 position: "absolute",
@@ -96,8 +96,8 @@ export const D2Think: React.FC = () => {
                   borderRadius: 18,
                   padding: "36px 44px",
                   background: "rgba(255,255,255,.02)",
-                  opacity: clamp(frame, [100, 118], [0, 1]),
-                  translate: `0px ${clamp(frame, [100, 120], [30, 0])}px`,
+                  opacity: clamp(frame, [162, 182], [0, 1]),
+                  translate: `0px ${clamp(frame, [162, 184], [30, 0])}px`,
                 }}
               >
                 <div
@@ -128,7 +128,7 @@ export const D2Think: React.FC = () => {
                     stroke={C.data}
                     strokeWidth={3}
                   />
-                  <g opacity={clamp(frame, [154, 172], [0, 1])}>
+                  <g opacity={clamp(frame, [204, 222], [0, 1])}>
                     <line x1={x(2)} y1={70} x2={x(2)} y2={130} stroke={C.data} strokeWidth={3} />
                     <text x={x(2)} y={44} textAnchor="middle" fontFamily={FONT_TC} fontWeight={700} fontSize={26} fill={C.ink}>
                       預期 2.0
@@ -155,7 +155,7 @@ export const D2Think: React.FC = () => {
                       fontSize: 24,
                       color: C.ink2,
                       marginTop: i === 0 ? 14 : 12,
-                      opacity: clamp(frame, [168 + i * 16, 182 + i * 16], [0, 1]),
+                      opacity: clamp(frame, [226 + i * 16, 240 + i * 16], [0, 1]),
                     }}
                   >
                     <span
