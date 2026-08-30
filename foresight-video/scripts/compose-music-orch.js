@@ -239,7 +239,21 @@ const PROG = [
   { root: 43, chord: [55, 59, 62], low: 31 },
   { root: 38, chord: [54, 57, 62], low: 26 },
 ];
-const chordAt = (t) => PROG[Math.floor((t - 4.8) / BAR) % 4];
+const Fch = { root: 41, chord: [53, 57, 60], low: 29 };
+const Gch = { root: 43, chord: [55, 59, 62], low: 31 };
+// B 段（demo）：C 大調 I–V–vi–IV
+const DEMO_PROG = [
+  { root: 48, chord: [55, 60, 64], low: 36 }, // C
+  Gch, // G
+  { root: 45, chord: [57, 60, 64], low: 33 }, // Am
+  Fch, // F
+];
+const chordAt = (t) => {
+  if (t >= 40.0) return DEMO_PROG[Math.floor((t - 40.0) / BAR) % 4];
+  if (t >= 38.8) return Gch; // V：屬和弦懸掛，指向 C
+  if (t >= 36.0) return Fch; // IV：轉調預備
+  return PROG[Math.floor((t - 4.8) / BAR) % 4];
+};
 const inBreath = (t) => (t >= 38.8 && t < 40.0) || (t >= 57.2 && t < 62.0);
 
 /* ---------- 編曲 ---------- */
@@ -271,7 +285,8 @@ for (let t = 4.8; t < 76.3; t += BAR) {
   sub(t, BAR + 0.2, 440 * Math.pow(2, (c.low - 69) / 12), t < 22.8 ? 0.7 : 1.0);
 }
 // 38.8–40 懸浮：小提琴長音撐住
-note(38.8, "vlnSus", 57, { dyn: 1, gain: 0.55, atk: 0.3, maxLen: 1.4, rel: 0.6, send: 0.6 });
+note(38.8, "vlnSus", 55, { dyn: 1, gain: 0.5, atk: 0.3, maxLen: 1.4, rel: 0.6, send: 0.6 });
+note(38.82, "vlnSus", 62, { dyn: 1, gain: 0.45, atk: 0.3, maxLen: 1.4, rel: 0.6, send: 0.6 });
 
 // 小提琴斷奏 ostinato：8 分（音型 根-根-5度-8度），66.8 起 16 分
 for (let t = 4.8; t < 76.3; t += BEAT / 2) {
@@ -279,34 +294,45 @@ for (let t = 4.8; t < 76.3; t += BEAT / 2) {
   if (t >= 38.8 && t < 40.0) continue;
   const c = chordAt(t);
   const step = Math.round((t - 4.8) / (BEAT / 2));
-  const patt = [0, 0, 7, 12];
-  const midi = c.root + 12 + patt[step % 4];
-  const dyn = t < 22.8 ? 1 : 2;
-  const lvl = t < 13.2 ? 0.5 : t < 30.4 ? 0.6 : t < 40 ? 0.7 : t < 66.8 ? 0.75 : 0.85;
-  note(t, "vlnSpic", midi, { dyn, gain: lvl, pan: 0.15, send: 0.3 });
-  // 大提琴斷奏低八度：22.8 起，正拍
-  if (t >= 22.8 && step % 2 === 0) note(t, "vcSpic", c.root, { dyn, gain: lvl * 0.8, pan: -0.2, send: 0.3 });
-  // 終盤 16 分：反拍加插音
-  if (t >= 66.8) note(t + BEAT / 4, "vlnSpic", c.root + 24, { dyn: 2, gain: 0.55, pan: 0.25, send: 0.3 });
+  if (t < 38.8) {
+    // A 段：小提琴 ostinato + 大提琴正拍
+    const patt = [0, 0, 7, 12];
+    const dyn = t < 22.8 ? 1 : 2;
+    const lvl = t < 13.2 ? 0.5 : t < 30.4 ? 0.6 : 0.7;
+    note(t, "vlnSpic", c.root + 12 + patt[step % 4], { dyn, gain: lvl, pan: 0.15, send: 0.3 });
+    if (t >= 22.8 && step % 2 === 0) note(t, "vcSpic", c.root, { dyn, gain: lvl * 0.8, pan: -0.2, send: 0.3 });
+  } else {
+    // B 段：大提琴 riff 當節奏引擎，小提琴讓位給 B 主題
+    const patt = [0, 0, 7, 0];
+    const lvl = t < 66.8 ? 0.75 : 0.85;
+    note(t, "vcSpic", c.root + patt[step % 4], { dyn: 2, gain: lvl, pan: -0.2, send: 0.3 });
+    if (t >= 66.8) note(t + BEAT / 4, "vlnSpic", c.root + 24, { dyn: 2, gain: 0.5, pan: 0.25, send: 0.3 });
+  }
 }
 
-// 法國號：30.4 起旋律長音（級進上行），40 起上八度
-const MELODY = [
-  [30.4, 57, 4.6],
-  [35.2, 59, 3.4],
-  [40.0, 64, 4.6],
-  [44.8, 65, 4.6],
-  [49.6, 67, 4.6],
-  [54.4, 64, 2.6],
-  [62.0, 69, 4.6],
-  [66.8, 72, 4.6],
-  [71.6, 76, 4.5],
-];
-for (const [t, m, len] of MELODY) {
-  const lvl = t < 40 ? 0.55 : t < 66.8 ? 0.7 : 0.85;
-  note(t, "horn", m, { dyn: t < 62 ? 2 : 3, gain: lvl, atk: 0.25, maxLen: len, rel: 1.0, send: 0.55 });
-  note(t + 0.025, "horn", m - 12, { dyn: 1, gain: lvl * 0.5, atk: 0.3, maxLen: len, rel: 1.0, send: 0.55 });
+// A 主題（敘事段）：法國號長音，尾音 B = 新調的屬音預備
+for (const [t, m, len] of [[30.4, 57, 4.6], [35.2, 59, 3.4]]) {
+  note(t, "horn", m, { dyn: 2, gain: 0.55, atk: 0.25, maxLen: len, rel: 1.0, send: 0.55 });
+  note(t + 0.025, "horn", m - 12, { dyn: 1, gain: 0.28, atk: 0.3, maxLen: len, rel: 1.0, send: 0.55 });
 }
+
+// B 主題（demo 段，C 大調）：全新旋律身分，2 小節一句，兩種句尾輪替
+const BT_A = [[0, 64, 0.85], [0.9, 67, 0.28], [1.2, 69, 1.15], [2.4, 67, 0.55], [3.0, 64, 0.55], [3.6, 62, 0.55], [4.2, 60, 0.55]];
+const BT_B = [[0, 64, 0.85], [0.9, 67, 0.28], [1.2, 69, 1.15], [2.4, 71, 0.55], [3.0, 72, 1.6]];
+function bTheme(t0, oct, vGain, withHorn) {
+  const phrase = Math.round((t0 - 40) / 4.8) % 2 === 1 ? BT_B : BT_A;
+  for (const [dt, m, len] of phrase) {
+    note(t0 + dt, "vlnSus", m + oct, { dyn: 2, gain: vGain, atk: 0.09, maxLen: len, rel: 0.35, send: 0.5, pan: 0.15 });
+    if (withHorn) note(t0 + dt + 0.02, "horn", m - 12, { dyn: 2, gain: vGain * 0.55, atk: 0.12, maxLen: len, rel: 0.4, send: 0.5 });
+  }
+}
+bTheme(40.0, 0, 0.8, false);
+bTheme(44.8, 0, 0.85, true);
+bTheme(49.6, 0, 0.9, true);
+for (const [dt, m, len] of BT_A.slice(0, 3)) note(54.4 + dt, "vlnSus", m, { dyn: 2, gain: 0.8, atk: 0.09, maxLen: len, rel: 0.5, send: 0.5, pan: 0.15 });
+bTheme(62.0, 12, 0.9, true);
+bTheme(66.8, 12, 1.0, true);
+bTheme(71.6, 12, 1.0, true);
 
 // 鋼琴動機回聲：稀疏點綴（每 8 小節一句）
 for (const [t, m] of [[14.4, 81], [24.0, 84], [33.6, 81], [43.2, 88], [52.8, 84], [62.4, 88]]) {
@@ -324,11 +350,11 @@ for (const t0 of [40.0, 47.6, 62.0, 66.8]) {
 /* ── 40 秒風格切換：The Drop ──
    進場 fill（定音鼓加速）+ 吊鈸漸強頂點卡在 40.0，
    然後 crash + 大鼓齊下，節奏組進場。 */
-hit(38.85, timpHits, { gain: 0.6, send: 0.4 });
-hit(39.15, timpHits, { gain: 0.65, send: 0.4 });
-hit(39.45, timpHits, { gain: 0.7, send: 0.4 });
-hit(39.6, timpHits, { gain: 0.7, send: 0.4 });
-hit(39.75, timpHits, { gain: 0.75, send: 0.4 });
+hit(38.85, timpHits, { gain: 0.35, send: 0.4 });
+hit(39.15, timpHits, { gain: 0.42, send: 0.4 });
+hit(39.45, timpHits, { gain: 0.5, send: 0.4 });
+hit(39.6, timpHits, { gain: 0.58, send: 0.4 });
+hit(39.75, timpHits, { gain: 0.68, send: 0.4 });
 hit(39.9, timpHits, { gain: 0.8, send: 0.4 });
 hitEnd(40.0, susCresc, { gain: 0.55, send: 0.5 });
 hit(40.0, crash, { gain: 0.75, send: 0.5 });
@@ -363,9 +389,12 @@ hitEnd(76.38, susCrescL, { gain: 0.7, send: 0.5 });
 for (const [t, g] of [[4.6, 0.7], [22.8, 0.8], [40.0, 1.1], [62.0, 0.9], [66.8, 1.0]]) hit(t, bdrums, { gain: g, send: 0.45 });
 
 // 呼吸段（57.2–62）：鋼琴高音動機獨白
-pianoNote(57.4, 88, { dyn: 2, gain: 0.7, send: 0.6 });
-pianoNote(59.0, 91, { dyn: 1, gain: 0.6, send: 0.6 });
-pianoNote(60.6, 93, { dyn: 2, gain: 0.7, send: 0.6 });
+pianoNote(57.5, 76, { dyn: 2, gain: 0.65, send: 0.6 });
+pianoNote(58.4, 79, { dyn: 1, gain: 0.55, send: 0.6 });
+pianoNote(58.7, 81, { dyn: 2, gain: 0.7, send: 0.6 });
+pianoNote(59.9, 79, { dyn: 1, gain: 0.55, send: 0.6 });
+pianoNote(60.5, 76, { dyn: 2, gain: 0.6, send: 0.6 });
+pianoNote(61.1, 74, { dyn: 1, gain: 0.5, send: 0.6 });
 
 // 滴答貫穿 demo
 for (let t = 40.0; t < 76.3; t += BEAT / 2) tick(t, 0.14);
@@ -380,13 +409,13 @@ hit(76.52, bdrums, { gain: 1.3, send: 0.6 });
 hit(76.52, gongs, { gain: 0.9, send: 0.65 });
 hit(76.54, crash, { gain: 0.55, send: 0.6 });
 hit(76.55, timpHits, { gain: 0.9, send: 0.6 });
-note(76.55, "vcSus", 45, { dyn: 3, gain: 1.4, atk: 0.4, maxLen: 6.4, rel: 1.6, send: 0.6, pan: -0.2 });
-note(76.6, "vcSus", 52, { dyn: 1, gain: 1.0, atk: 0.5, maxLen: 6.2, rel: 1.6, send: 0.6 });
+note(76.55, "vcSus", 48, { dyn: 3, gain: 1.4, atk: 0.4, maxLen: 6.4, rel: 1.6, send: 0.6, pan: -0.2 });
+note(76.6, "vcSus", 55, { dyn: 1, gain: 1.0, atk: 0.5, maxLen: 6.2, rel: 1.6, send: 0.6 });
 note(76.6, "vlnSus", 60, { dyn: 2, gain: 1.15, atk: 0.5, maxLen: 6.2, rel: 1.6, send: 0.6, pan: 0.2 });
 note(76.65, "vlnSus", 64, { dyn: 1, gain: 1.0, atk: 0.6, maxLen: 6.0, rel: 1.6, send: 0.6, pan: 0.3 });
-note(76.65, "vlnSus", 71, { dyn: 1, gain: 0.9, atk: 0.7, maxLen: 6.0, rel: 1.6, send: 0.6, pan: 0.1 });
-note(76.7, "horn", 57, { dyn: 3, gain: 1.15, atk: 0.3, maxLen: 5.6, rel: 1.6, send: 0.6 });
-sub(76.5, 7.4, 55, 1.6);
+note(76.65, "vlnSus", 74, { dyn: 1, gain: 0.9, atk: 0.7, maxLen: 6.0, rel: 1.6, send: 0.6, pan: 0.1 });
+note(76.7, "horn", 60, { dyn: 3, gain: 1.15, atk: 0.3, maxLen: 5.6, rel: 1.6, send: 0.6 });
+sub(76.5, 7.4, 65.41, 1.6);
 pianoNote(78.4, 69, { dyn: 3, gain: 1.0, send: 0.65 });
 pianoNote(79.6, 72, { dyn: 2, gain: 0.9, send: 0.65 });
 pianoNote(80.8, 76, { dyn: 3, gain: 1.05, send: 0.65 });
