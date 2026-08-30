@@ -105,6 +105,14 @@ const percDir = (sub, re) =>
 const timpHits = percDir("Percussion/Timpani", /Hit_v\d_rr\d/);
 const timpRolls = percDir("Percussion/Timpani/Rolls", /Roll_v5/);
 const bdrums = fs.readdirSync(path.join(VSCO, "Percussion")).filter((f) => /^BDrumNewhit/.test(f)).map((f) => path.join(VSCO, "Percussion", f));
+const crash = percDir("Percussion", /^cymbal-crash1/);
+const susCresc = percDir("Percussion", /^susCymb1-cresc-Median/);
+const susCrescL = percDir("Percussion", /^susCymb1-cresc-Long/);
+const snares = percDir("Percussion", /^Snare2-Hit/);
+const snareRolls = percDir("Percussion", /^Snare2-roll/);
+const tambs = percDir("Percussion", /^Tamb1-Hit/);
+const gongs = percDir("Percussion", /^gongHit/);
+console.log(`rhythm: crash:${crash.length} cresc:${susCresc.length}/${susCrescL.length} snare:${snares.length} roll:${snareRolls.length} tamb:${tambs.length} gong:${gongs.length}`);
 
 for (const [k, m] of Object.entries(INST)) if (!m.size) throw new Error(`empty map: ${k}`);
 console.log("sample maps:", Object.entries(INST).map(([k, m]) => `${k}:${m.size}`).join(" "), `piano:${pianoFiles.size} timp:${timpHits.length} rolls:${timpRolls.length} bd:${bdrums.length}`);
@@ -160,6 +168,25 @@ function pianoNote(sec, midi, { dyn = 2, ...opt } = {}) {
 }
 function hit(sec, files, opt = {}) {
   play(sec, loadWav(files[Math.floor(rnd() * files.length)]), opt);
+}
+/* 樣本「結束點」對準 sec：吊鈸漸強頂點卡在轉場上 */
+function hitEnd(sec, files, opt = {}) {
+  const buf = loadWav(files[Math.floor(rnd() * files.length)]);
+  play(sec - buf.length / SR, buf, opt);
+}
+/* 電子 kick：正弦掃頻，hybrid 律動的底 */
+function ekick(sec, gain) {
+  const s = at(sec);
+  const L = Math.round(0.26 * SR);
+  let ph = 0;
+  for (let i = s, k = 0; k < L && i < N; i++, k++) {
+    const t = k / SR;
+    const f = 44 + 80 * Math.exp(-t / 0.04);
+    ph += (TWO_PI * f) / SR;
+    const v = Math.sin(ph) * Math.exp(-t / 0.1) * gain * 0.5;
+    dryL[i] += v;
+    dryR[i] += v;
+  }
 }
 
 /* ---------- 電子層（無 alias：正弦與噪音） ---------- */
@@ -294,15 +321,46 @@ for (const t0 of [40.0, 47.6, 62.0, 66.8]) {
   });
 }
 
-// 定音鼓：22.8 起小節重拍，40 起 1、3 拍，終盤加密
+/* ── 40 秒風格切換：The Drop ──
+   進場 fill（定音鼓加速）+ 吊鈸漸強頂點卡在 40.0，
+   然後 crash + 大鼓齊下，節奏組進場。 */
+hit(38.85, timpHits, { gain: 0.6, send: 0.4 });
+hit(39.15, timpHits, { gain: 0.65, send: 0.4 });
+hit(39.45, timpHits, { gain: 0.7, send: 0.4 });
+hit(39.6, timpHits, { gain: 0.7, send: 0.4 });
+hit(39.75, timpHits, { gain: 0.75, send: 0.4 });
+hit(39.9, timpHits, { gain: 0.8, send: 0.4 });
+hitEnd(40.0, susCresc, { gain: 0.55, send: 0.5 });
+hit(40.0, crash, { gain: 0.75, send: 0.5 });
+
+// 半速律動（40–57.2）：kick 1、3 拍，軍鼓 3 拍 backbeat（重量感）
+for (let t = 40.0; t < 57.2; t += BAR) {
+  ekick(t, 0.85);
+  ekick(t + BEAT * 2, 0.7);
+  hit(t + BEAT * 2, snares, { gain: 0.42, send: 0.45 });
+}
+// 鈴鼓 8 分：47.6 起加入
+for (let t = 47.6; t < 57.2; t += BEAT / 2) hit(t, tambs, { gain: 0.26, send: 0.3 });
+// 呼吸段（57.2–62）：只留 kick 心跳
+for (let t = 57.2; t < 62.0; t += BAR) ekick(t, 0.5);
+// 全速律動（62–76.3）：four-on-floor + 軍鼓 2、4 拍（雙倍時感 = 再升一級）
+for (let t = 62.0; t < 76.3; t += BEAT) ekick(t, 0.8);
+for (let t = 62.0 + BEAT; t < 76.3; t += BEAT * 2) hit(t, snares, { gain: 0.46, send: 0.45 });
+for (let t = 62.0; t < 71.0; t += BEAT / 2) hit(t, tambs, { gain: 0.28, send: 0.3 });
+for (let t = 71.0; t < 76.3; t += BEAT / 4) hit(t, tambs, { gain: 0.3, send: 0.3 });
+
+// 定音鼓：22.8 起小節重拍（前段不變），62 起每兩拍，71 起加密
 for (let t = 22.8; t < 38.8; t += BAR) hit(t, timpHits, { gain: 0.55, send: 0.4 });
-for (let t = 40.0; t < 71.0; t += BEAT * 2) hit(t, timpHits, { gain: 0.6, send: 0.4 });
+for (let t = 40.0; t < 62.0; t += BAR) hit(t, timpHits, { gain: 0.6, send: 0.4 });
+for (let t = 62.0; t < 71.0; t += BEAT * 2) hit(t, timpHits, { gain: 0.65, send: 0.4 });
 for (let t = 71.0; t < 74.6; t += BEAT) hit(t, timpHits, { gain: 0.7, send: 0.4 });
 for (let t = 74.6; t < 76.3; t += BEAT / 2) hit(t, timpHits, { gain: 0.8, send: 0.4 });
-// 定音鼓滾奏推向終點
+// 終點推進：定音鼓滾奏 + 軍鼓滾奏 + 吊鈸長漸強
 hit(73.6, timpRolls, { gain: 0.7, maxLen: 2.8, rel: 0.5, send: 0.5 });
+hit(74.6, snareRolls, { gain: 0.5, maxLen: 1.7, rel: 0.3, send: 0.5 });
+hitEnd(76.38, susCrescL, { gain: 0.7, send: 0.5 });
 // 大鼓：結構重音
-for (const [t, g] of [[4.6, 0.7], [22.8, 0.8], [40.0, 1.0], [66.8, 1.0]]) hit(t, bdrums, { gain: g, send: 0.45 });
+for (const [t, g] of [[4.6, 0.7], [22.8, 0.8], [40.0, 1.1], [62.0, 0.9], [66.8, 1.0]]) hit(t, bdrums, { gain: g, send: 0.45 });
 
 // 呼吸段（57.2–62）：鋼琴高音動機獨白
 pianoNote(57.4, 88, { dyn: 2, gain: 0.7, send: 0.6 });
@@ -319,14 +377,16 @@ riser(76.4, 3.4, 1.0);
 const cutS = at(76.36);
 const cutE = at(76.5);
 hit(76.52, bdrums, { gain: 1.3, send: 0.6 });
+hit(76.52, gongs, { gain: 0.9, send: 0.65 });
+hit(76.54, crash, { gain: 0.55, send: 0.6 });
 hit(76.55, timpHits, { gain: 0.9, send: 0.6 });
-note(76.55, "vcSus", 45, { dyn: 3, gain: 1.1, atk: 0.4, maxLen: 6.4, rel: 1.6, send: 0.6, pan: -0.2 });
-note(76.6, "vcSus", 52, { dyn: 1, gain: 0.8, atk: 0.5, maxLen: 6.2, rel: 1.6, send: 0.6 });
-note(76.6, "vlnSus", 60, { dyn: 2, gain: 0.9, atk: 0.5, maxLen: 6.2, rel: 1.6, send: 0.6, pan: 0.2 });
-note(76.65, "vlnSus", 64, { dyn: 1, gain: 0.8, atk: 0.6, maxLen: 6.0, rel: 1.6, send: 0.6, pan: 0.3 });
-note(76.65, "vlnSus", 71, { dyn: 1, gain: 0.7, atk: 0.7, maxLen: 6.0, rel: 1.6, send: 0.6, pan: 0.1 });
-note(76.7, "horn", 57, { dyn: 3, gain: 0.9, atk: 0.3, maxLen: 5.6, rel: 1.6, send: 0.6 });
-sub(76.5, 7.4, 55, 1.3);
+note(76.55, "vcSus", 45, { dyn: 3, gain: 1.4, atk: 0.4, maxLen: 6.4, rel: 1.6, send: 0.6, pan: -0.2 });
+note(76.6, "vcSus", 52, { dyn: 1, gain: 1.0, atk: 0.5, maxLen: 6.2, rel: 1.6, send: 0.6 });
+note(76.6, "vlnSus", 60, { dyn: 2, gain: 1.15, atk: 0.5, maxLen: 6.2, rel: 1.6, send: 0.6, pan: 0.2 });
+note(76.65, "vlnSus", 64, { dyn: 1, gain: 1.0, atk: 0.6, maxLen: 6.0, rel: 1.6, send: 0.6, pan: 0.3 });
+note(76.65, "vlnSus", 71, { dyn: 1, gain: 0.9, atk: 0.7, maxLen: 6.0, rel: 1.6, send: 0.6, pan: 0.1 });
+note(76.7, "horn", 57, { dyn: 3, gain: 1.15, atk: 0.3, maxLen: 5.6, rel: 1.6, send: 0.6 });
+sub(76.5, 7.4, 55, 1.6);
 pianoNote(78.4, 69, { dyn: 3, gain: 1.0, send: 0.65 });
 pianoNote(79.6, 72, { dyn: 2, gain: 0.9, send: 0.65 });
 pianoNote(80.8, 76, { dyn: 3, gain: 1.05, send: 0.65 });
