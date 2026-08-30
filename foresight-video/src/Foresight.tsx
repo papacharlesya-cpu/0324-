@@ -23,7 +23,7 @@ const xfade = () => (
 );
 
 export const Foresight: React.FC<{ musicFile?: string }> = ({
-  musicFile = "music.wav",
+  musicFile = "music-orch.wav",
 }) => {
   return (
     <AbsoluteFill>
