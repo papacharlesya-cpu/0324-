@@ -472,48 +472,85 @@ const M4to7: React.FC = () => {
 
             {/* 內容區 */}
             <div style={{ flex: 1, position: "relative", minWidth: 0 }}>
-              {/* P1 對話 */}
+              {/* P1 對話：懸浮卡片疊在失焦的後台之上 */}
               <div style={{ position: "absolute", inset: 0, ...pageShift(frame, 0) }}>
-                <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 56px", gap: 24 }}>
-                  <div style={{ fontSize: 27, color: LC.ink2, opacity: clamp(frame, [26, 40], [0, 1]) }}>
-                    嗨，今天想做什麼？
+                {/* 失焦的後台骨架 */}
+                <div style={{ position: "absolute", inset: 0, padding: "28px 44px", filter: "blur(5px)", opacity: 0.45 }}>
+                  <div style={{ display: "flex", gap: 26, marginBottom: 24 }}>
+                    {[120, 96, 60].map((w, i) => (
+                      <span key={i} style={{ width: w, height: 15, borderRadius: 8, background: i === 1 ? "#B9CBF4" : LC.border }} />
+                    ))}
                   </div>
+                  {[
+                    [300, 130, 110],
+                    [260, 150, 90],
+                    [330, 120, 120],
+                    [280, 140, 100],
+                    [310, 110, 130],
+                  ].map((bars, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 30, padding: "20px 0", borderTop: `1px solid ${LC.border}` }}>
+                      <span style={{ width: 46, height: 26, borderRadius: 999, background: "#CFD6DF" }} />
+                      {bars.map((w, k) => (
+                        <span key={k} style={{ width: w, height: 15, borderRadius: 8, background: k ? "#EEF2F8" : LC.border }} />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                {/* 懸浮對話卡片 */}
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <div
                     style={{
-                      border: `2px solid ${frame > 50 && frame < 172 ? LC.blue : LC.border}`,
-                      borderRadius: 18,
-                      padding: "26px 32px",
-                      fontSize: 33,
-                      lineHeight: 1.6,
-                      minHeight: 112,
-                      background: LC.bg,
-                      boxShadow: frame > 50 && frame < 172 ? "0 0 0 5px rgba(47,107,255,.10)" : "none",
+                      width: 1080,
+                      background: "#fff",
+                      border: `2px solid ${LC.border}`,
+                      borderRadius: 22,
+                      boxShadow: "0 28px 70px rgba(23,32,46,.16)",
+                      padding: "34px 44px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 22,
                     }}
                   >
-                    <TypeText from={58} cps={22} text="新品上市：膠原蛋白飲，月預算 80 萬，目標 EC 購買。" />
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div style={{ display: "flex", gap: 14, opacity: clamp(frame, [34, 50], [0, 1]) }}>
-                      {["雙 11 備戰", "週報摘要", "健檢帳戶"].map((t) => (
-                        <span key={t} style={{ fontSize: 21, color: LC.ink2, border: `1.5px solid ${LC.border}`, borderRadius: 999, padding: "8px 22px" }}>
-                          {t}
-                        </span>
-                      ))}
+                    <div style={{ fontSize: 27, color: LC.ink2, opacity: clamp(frame, [26, 40], [0, 1]) }}>
+                      嗨，今天想做什麼？
                     </div>
                     <div
                       style={{
-                        fontFamily: FONT_MONO,
-                        fontSize: 23,
-                        fontWeight: 600,
-                        color: "#fff",
-                        background: LC.blue,
-                        borderRadius: 12,
-                        padding: "13px 38px",
-                        scale: String(frame >= 160 && frame < 166 ? 0.92 : 1),
-                        boxShadow: "0 8px 24px rgba(47,107,255,.35)",
+                        border: `2px solid ${frame > 50 && frame < 172 ? LC.blue : LC.border}`,
+                        borderRadius: 18,
+                        padding: "26px 32px",
+                        fontSize: 33,
+                        lineHeight: 1.6,
+                        minHeight: 112,
+                        background: LC.bg,
+                        boxShadow: frame > 50 && frame < 172 ? "0 0 0 5px rgba(47,107,255,.10)" : "none",
                       }}
                     >
-                      {frame < 164 ? "送出 ▸" : "分析中…"}
+                      <TypeText from={58} cps={22} text="新品上市：膠原蛋白飲，月預算 80 萬，目標 EC 購買。" />
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ display: "flex", gap: 14, opacity: clamp(frame, [34, 50], [0, 1]) }}>
+                        {["雙 11 備戰", "週報摘要", "健檢帳戶"].map((t) => (
+                          <span key={t} style={{ fontSize: 21, color: LC.ink2, border: `1.5px solid ${LC.border}`, borderRadius: 999, padding: "8px 22px" }}>
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: FONT_MONO,
+                          fontSize: 23,
+                          fontWeight: 600,
+                          color: "#fff",
+                          background: LC.blue,
+                          borderRadius: 12,
+                          padding: "13px 38px",
+                          scale: String(frame >= 160 && frame < 166 ? 0.92 : 1),
+                          boxShadow: "0 8px 24px rgba(47,107,255,.35)",
+                        }}
+                      >
+                        {frame < 164 ? "送出 ▸" : "分析中…"}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -759,25 +796,66 @@ const M4to7: React.FC = () => {
                 </div>
               </div>
 
-              {/* P4 成效 */}
+              {/* P4 成效：廣告報表視窗 */}
               <div style={{ position: "absolute", inset: 0, ...pageShift(frame, 3) }}>
-                <div style={{ position: "absolute", inset: 0, display: "flex", padding: "34px 48px", gap: 26 }}>
-                  <div style={{ width: 300, display: "flex", flexDirection: "column", gap: 20 }}>
-                    <div style={{ background: LC.bg, border: `2px solid ${LC.border}`, borderRadius: 16, padding: "20px 26px", opacity: clamp(frame, [820, 834], [0, 1]) }}>
-                      <div style={{ fontSize: 19, color: LC.ink3 }}>6 週 ROAS</div>
-                      <div style={{ fontFamily: FONT_MONO, fontSize: 56, fontWeight: 600, color: LC.blue }}>{roasCount}</div>
-                      <div style={{ fontSize: 18, color: LC.green }}>高於預期</div>
+                <div style={{ position: "absolute", inset: 0, padding: "22px 48px" }}>
+                <div
+                  style={{
+                    height: 534,
+                    borderRadius: 14,
+                    border: `2px solid ${LC.border}`,
+                    background: "#fff",
+                    overflow: "hidden",
+                    boxShadow: "0 18px 44px rgba(23,32,46,.12)",
+                    display: "flex",
+                    flexDirection: "column",
+                    opacity: clamp(frame, [812, 826], [0, 1]),
+                  }}
+                >
+                  {/* 瀏覽器列 */}
+                  <div style={{ height: 44, background: LC.bg, borderBottom: `1px solid ${LC.border}`, display: "flex", alignItems: "center", gap: 14, padding: "0 18px", flex: "none" }}>
+                    <div style={{ display: "flex", gap: 7 }}>
+                      {["#FF5F57", "#FEBC2E", "#28C840"].map((c) => (
+                        <span key={c} style={{ width: 11, height: 11, borderRadius: "50%", background: c }} />
+                      ))}
                     </div>
-                    <div style={{ background: LC.bg, border: `2px solid ${LC.border}`, borderRadius: 16, padding: "20px 26px", opacity: clamp(frame, [838, 852], [0, 1]) }}>
-                      <div style={{ fontSize: 19, color: LC.ink3 }}>CPA</div>
-                      <div style={{ fontFamily: FONT_MONO, fontSize: 40, fontWeight: 600 }}>−18%</div>
+                    <div style={{ flex: 1, maxWidth: 520, display: "flex", alignItems: "center", gap: 8, background: "#fff", border: `1px solid ${LC.border}`, borderRadius: 999, padding: "5px 16px" }}>
+                      <svg width={13} height={15} viewBox="0 0 13 15">
+                        <rect x={1} y={6} width={11} height={8} rx={2} fill={LC.ink3} />
+                        <path d="M3.5 6V4.5a3 3 0 0 1 6 0V6" fill="none" stroke={LC.ink3} strokeWidth={1.8} />
+                      </svg>
+                      <span style={{ fontFamily: FONT_MONO, fontSize: 15, color: LC.ink2 }}>business.facebook.com/adsmanager/reporting</span>
                     </div>
-                    <div style={{ background: LC.bg, border: `2px solid ${LC.border}`, borderRadius: 16, padding: "20px 26px", opacity: clamp(frame, [856, 870], [0, 1]) }}>
-                      <div style={{ fontSize: 19, color: LC.ink3 }}>異常到修正</div>
-                      <div style={{ fontFamily: FONT_MONO, fontSize: 40, fontWeight: 600 }}>4 小時</div>
+                    <span style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: FONT_MONO, fontSize: 14, color: LC.green, border: `1px solid ${LC.border}`, background: "#fff", borderRadius: 999, padding: "5px 14px" }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: LC.green, opacity: 0.55 + 0.45 * Math.sin(frame / 3.2) }} />
+                      FORESIGHT 監控中
+                    </span>
+                  </div>
+                  {/* 報表標題列 */}
+                  <div style={{ height: 46, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 22px", borderBottom: `1px solid ${LC.border}`, flex: "none" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                      <span style={{ fontSize: 20, fontWeight: 800 }}>廣告報表</span>
+                      <span style={{ fontSize: 15, color: LC.ink2, border: `1.5px solid ${LC.border}`, borderRadius: 999, padding: "3px 14px" }}>新品上市計畫</span>
+                    </div>
+                    <span style={{ fontSize: 15, color: LC.ink3 }}>過去 6 週 · 每週更新</span>
+                  </div>
+                  <div style={{ flex: 1, display: "flex", padding: "20px 24px", gap: 22, minHeight: 0 }}>
+                  <div style={{ width: 290, display: "flex", flexDirection: "column", gap: 12, minHeight: 0 }}>
+                    <div style={{ background: LC.bg, border: `2px solid ${LC.border}`, borderRadius: 16, padding: "12px 22px", flex: 1.3, minHeight: 0, opacity: clamp(frame, [820, 834], [0, 1]) }}>
+                      <div style={{ fontSize: 18, color: LC.ink3 }}>6 週 ROAS</div>
+                      <div style={{ fontFamily: FONT_MONO, fontSize: 46, fontWeight: 600, color: LC.blue }}>{roasCount}</div>
+                      <div style={{ fontSize: 17, color: LC.green }}>高於預期</div>
+                    </div>
+                    <div style={{ background: LC.bg, border: `2px solid ${LC.border}`, borderRadius: 16, padding: "12px 22px", flex: 1, minHeight: 0, opacity: clamp(frame, [838, 852], [0, 1]) }}>
+                      <div style={{ fontSize: 18, color: LC.ink3 }}>CPA</div>
+                      <div style={{ fontFamily: FONT_MONO, fontSize: 34, fontWeight: 600 }}>−18%</div>
+                    </div>
+                    <div style={{ background: LC.bg, border: `2px solid ${LC.border}`, borderRadius: 16, padding: "12px 22px", flex: 1, minHeight: 0, opacity: clamp(frame, [856, 870], [0, 1]) }}>
+                      <div style={{ fontSize: 18, color: LC.ink3 }}>異常到修正</div>
+                      <div style={{ fontFamily: FONT_MONO, fontSize: 34, fontWeight: 600 }}>4 小時</div>
                     </div>
                   </div>
-                  <div style={{ flex: 1, border: `2px solid ${LC.border}`, borderRadius: 16, background: LC.bg, padding: "24px 30px", opacity: clamp(frame, [816, 830], [0, 1]) }}>
+                  <div style={{ flex: 1, border: `2px solid ${LC.border}`, borderRadius: 16, background: LC.bg, padding: "18px 28px", opacity: clamp(frame, [816, 830], [0, 1]) }}>
                     <div style={{ fontFamily: FONT_MONO, fontSize: 17, letterSpacing: "0.2em", color: LC.ink3, marginBottom: 10 }}>
                       週次 ROAS
                     </div>
@@ -801,6 +879,8 @@ const M4to7: React.FC = () => {
                       </g>
                     </svg>
                   </div>
+                  </div>
+                </div>
                 </div>
               </div>
             </div>
@@ -812,8 +892,8 @@ const M4to7: React.FC = () => {
               { t: 24, x: 1310, y: 500 },
               { t: 46, x: 870, y: 338 },
               { t: 54, x: 870, y: 338, click: true },
-              { t: 140, x: 1340, y: 452 },
-              { t: 160, x: 1400, y: 452, click: true },
+              { t: 140, x: 1230, y: 470 },
+              { t: 160, x: 1304, y: 452, click: true },
             ]}
             hideAfter={196}
           />
