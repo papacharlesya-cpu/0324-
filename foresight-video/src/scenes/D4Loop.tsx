@@ -28,18 +28,113 @@ export const D4Loop: React.FC = () => {
         >
           <Eyebrow from={4}>DEMO 4/4 · 全天候</Eyebrow>
           <StaggerHeadline from={14} lines={["上線之後，它一直盯著。"]} size={92} />
-          <DemoWindow from={54} height={540}>
+          <DemoWindow from={54} height={600}>
             <div
               style={{
                 position: "absolute",
                 inset: 0,
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 18,
+                fontFamily: FONT_TC,
               }}
             >
+              {/* 瀏覽器列 */}
+              <div
+                style={{
+                  height: 44,
+                  flex: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  padding: "0 20px",
+                  background: "rgba(255,255,255,.03)",
+                  borderBottom: `1px solid ${C.hairline}`,
+                  opacity: clamp(frame, [70, 84], [0, 1]),
+                }}
+              >
+                <div style={{ display: "flex", gap: 7 }}>
+                  {["#FF5F57", "#FEBC2E", "#28C840"].map((c) => (
+                    <span key={c} style={{ width: 11, height: 11, borderRadius: "50%", background: c, opacity: 0.85 }} />
+                  ))}
+                </div>
+                <div
+                  style={{
+                    flex: 1,
+                    maxWidth: 520,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    background: "rgba(255,255,255,.06)",
+                    border: `1px solid ${C.hairline}`,
+                    borderRadius: 999,
+                    padding: "5px 16px",
+                  }}
+                >
+                  <svg width={13} height={15} viewBox="0 0 13 15">
+                    <rect x={1} y={6} width={11} height={8} rx={2} fill={C.ink3} />
+                    <path d="M3.5 6V4.5a3 3 0 0 1 6 0V6" fill="none" stroke={C.ink3} strokeWidth={1.8} />
+                  </svg>
+                  <span style={{ fontFamily: FONT_MONO, fontSize: 15, color: C.ink2 }}>
+                    business.facebook.com/adsmanager/reporting
+                  </span>
+                </div>
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontFamily: FONT_MONO,
+                    fontSize: 14,
+                    color: C.exec,
+                    border: `1px solid ${C.hairline}`,
+                    borderRadius: 999,
+                    padding: "5px 14px",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: C.exec,
+                      opacity: 0.55 + 0.45 * Math.sin(frame / 3.2),
+                    }}
+                  />
+                  FORESIGHT 監控中
+                </span>
+              </div>
+              {/* 報表標題列 */}
+              <div
+                style={{
+                  height: 42,
+                  flex: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0 24px",
+                  borderBottom: `1px solid ${C.hairline}`,
+                  opacity: clamp(frame, [76, 90], [0, 1]),
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <span style={{ fontSize: 20, fontWeight: 900, color: C.ink }}>廣告報表</span>
+                  <span style={{ fontSize: 15, color: C.ink2, border: `1.5px solid ${C.hairline}`, borderRadius: 999, padding: "3px 14px" }}>
+                    新品上市計畫
+                  </span>
+                </div>
+                <span style={{ fontSize: 15, color: C.ink3 }}>過去 6 週 · 每週更新</span>
+              </div>
+              <div
+                style={{
+                  flex: 1,
+                  minHeight: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 16,
+                }}
+              >
               <svg width={CW} height={CH} style={{ overflow: "visible" }}>
                 {/* 週次格線（隱性） */}
                 {DATA.map((_, i) => (
@@ -179,6 +274,7 @@ export const D4Loop: React.FC = () => {
                     </span>
                   ),
                 )}
+              </div>
               </div>
             </div>
           </DemoWindow>
