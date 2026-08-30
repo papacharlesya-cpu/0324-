@@ -318,21 +318,6 @@ const KpiTile: React.FC<{ from: number; label: string; value: string; hint?: str
   );
 };
 
-const Badge: React.FC<{ on: boolean }> = ({ on }) => (
-  <span
-    style={{
-      fontSize: 20,
-      fontWeight: 700,
-      color: on ? LC.green : LC.amber,
-      background: on ? LC.greenSoft : LC.amberSoft,
-      borderRadius: 999,
-      padding: "6px 20px",
-    }}
-  >
-    {on ? "● 進行中" : "⏸ 待核准"}
-  </span>
-);
-
 const M4to7: React.FC = () => {
   const frame = useCurrentFrame();
   const win = spAt(frame, 6, 15);
@@ -576,53 +561,170 @@ const M4to7: React.FC = () => {
                 </div>
               </div>
 
-              {/* P3 執行表格 + 核准 */}
+              {/* P3 執行：FORESIGHT 把設定寫進廣告後台（擬真管理員視窗） */}
               <div style={{ position: "absolute", inset: 0, ...pageShift(frame, 2) }}>
-                <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", padding: "32px 48px", gap: 18 }}>
-                  <div style={{ display: "flex", fontSize: 19, color: LC.ink3, padding: "0 22px", opacity: clamp(frame, [560, 574], [0, 1]) }}>
-                    <span style={{ flex: 2 }}>廣告組合</span>
-                    <span style={{ flex: 1.4 }}>受眾</span>
-                    <span style={{ flex: 1 }}>日預算</span>
-                    <span style={{ width: 150 }}>狀態</span>
-                  </div>
-                  {rows.map(([name, aud, budget], i) => {
-                    const e = spAt(frame, 574 + i * 20, 13);
-                    const flipped = frame > approveAt + 8 + i * 7;
+                <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", padding: "26px 48px", gap: 14 }}>
+                  {(() => {
+                    const bw = spAt(frame, 556, 14);
+                    const writing = frame < 650;
+                    const COLS = { toggle: 56, name: 1.5, aud: 1.1, status: 1, budget: 0.9, spend: 0.7 };
                     return (
                       <div
-                        key={i}
                         style={{
-                          display: "flex",
-                          alignItems: "center",
-                          background: LC.bg,
-                          border: `2px solid ${LC.border}`,
+                          height: 410,
                           borderRadius: 14,
-                          padding: "18px 22px",
-                          fontSize: 24,
-                          opacity: Math.min(1, e * 1.7),
-                          translate: `0px ${(1 - e) * 30}px`,
+                          border: `2px solid ${LC.border}`,
+                          background: "#fff",
+                          overflow: "hidden",
+                          boxShadow: "0 18px 44px rgba(23,32,46,.12)",
+                          opacity: Math.min(1, bw * 1.6),
+                          translate: `0px ${(1 - bw) * 44}px`,
+                          display: "flex",
+                          flexDirection: "column",
                         }}
                       >
-                        <span style={{ flex: 2, fontWeight: 700 }}>{name}</span>
-                        <span style={{ flex: 1.4, color: LC.ink2 }}>{aud}</span>
-                        <span style={{ flex: 1, fontFamily: FONT_MONO, color: LC.ink2 }}>{budget}</span>
-                        <span style={{ width: 150 }}>
-                          <Badge on={flipped} />
-                        </span>
+                        {/* 瀏覽器列 */}
+                        <div style={{ height: 44, background: LC.bg, borderBottom: `1px solid ${LC.border}`, display: "flex", alignItems: "center", gap: 14, padding: "0 18px", flex: "none" }}>
+                          <div style={{ display: "flex", gap: 7 }}>
+                            {["#FF5F57", "#FEBC2E", "#28C840"].map((c) => (
+                              <span key={c} style={{ width: 11, height: 11, borderRadius: "50%", background: c }} />
+                            ))}
+                          </div>
+                          <div style={{ flex: 1, maxWidth: 480, display: "flex", alignItems: "center", gap: 8, background: "#fff", border: `1px solid ${LC.border}`, borderRadius: 999, padding: "5px 16px" }}>
+                            <svg width={13} height={15} viewBox="0 0 13 15">
+                              <rect x={1} y={6} width={11} height={8} rx={2} fill={LC.ink3} />
+                              <path d="M3.5 6V4.5a3 3 0 0 1 6 0V6" fill="none" stroke={LC.ink3} strokeWidth={1.8} />
+                            </svg>
+                            <span style={{ fontFamily: FONT_MONO, fontSize: 15, color: LC.ink2 }}>business.facebook.com/adsmanager</span>
+                          </div>
+                          <span style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: FONT_MONO, fontSize: 14, color: LC.green, border: `1px solid ${LC.border}`, background: "#fff", borderRadius: 999, padding: "5px 14px" }}>
+                            <span style={{ width: 8, height: 8, borderRadius: "50%", background: LC.green }} />
+                            FORESIGHT 已連線
+                          </span>
+                        </div>
+                        {/* 管理員標題列 */}
+                        <div style={{ height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 22px", flex: "none" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                            <span style={{ fontSize: 21, fontWeight: 800 }}>廣告管理員</span>
+                            <span style={{ fontSize: 15, color: LC.ink2, border: `1.5px solid ${LC.border}`, borderRadius: 999, padding: "4px 14px" }}>Demo Brand TW ▾</span>
+                          </div>
+                          <span
+                            style={{
+                              fontSize: 15,
+                              color: writing ? LC.blue : LC.ink2,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              opacity: clamp(frame, [570, 584], [0, 1]),
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: "50%",
+                                background: writing ? LC.blue : LC.green,
+                                opacity: writing ? 0.55 + 0.45 * Math.sin(frame / 3.2) : 1,
+                              }}
+                            />
+                            {writing ? "FORESIGHT 寫入中…" : "3 個廣告組合已建立"}
+                          </span>
+                        </div>
+                        {/* 分頁籤 */}
+                        <div style={{ height: 42, display: "flex", gap: 34, padding: "0 22px", borderBottom: `1px solid ${LC.border}`, flex: "none" }}>
+                          {["行銷活動", "廣告組合", "廣告"].map((t, i) => (
+                            <span
+                              key={t}
+                              style={{
+                                position: "relative",
+                                display: "flex",
+                                alignItems: "center",
+                                fontSize: 18,
+                                fontWeight: i === 1 ? 700 : 400,
+                                color: i === 1 ? "#1877F2" : LC.ink2,
+                              }}
+                            >
+                              {t}
+                              {i === 1 ? (
+                                <span style={{ position: "absolute", left: 0, right: 0, bottom: -1, height: 3, borderRadius: 2, background: "#1877F2" }} />
+                              ) : null}
+                            </span>
+                          ))}
+                        </div>
+                        {/* 欄頭 */}
+                        <div style={{ height: 32, display: "flex", alignItems: "center", padding: "0 22px", fontSize: 15.5, color: LC.ink3, background: LC.bg, flex: "none" }}>
+                          <span style={{ width: COLS.toggle }}>開關</span>
+                          <span style={{ flex: COLS.name }}>廣告組合</span>
+                          <span style={{ flex: COLS.aud }}>受眾</span>
+                          <span style={{ flex: COLS.status }}>投遞狀態</span>
+                          <span style={{ flex: COLS.budget }}>日預算</span>
+                          <span style={{ flex: COLS.spend }}>花費金額</span>
+                        </div>
+                        {/* 資料列 */}
+                        {rows.map(([name, aud, budget], i) => {
+                          const e = spAt(frame, 574 + i * 20, 13);
+                          const flipped = frame > approveAt + 8 + i * 7;
+                          const knob = spAt(frame, approveAt + 8 + i * 7, 14);
+                          return (
+                            <div
+                              key={i}
+                              style={{
+                                height: 62,
+                                display: "flex",
+                                alignItems: "center",
+                                padding: "0 22px",
+                                borderTop: i ? `1px solid ${LC.border}` : "none",
+                                fontSize: 20,
+                                opacity: Math.min(1, e * 1.7),
+                                translate: `0px ${(1 - e) * 26}px`,
+                              }}
+                            >
+                              <span style={{ width: COLS.toggle }}>
+                                <span style={{ display: "inline-block", width: 46, height: 26, borderRadius: 999, background: flipped ? "#1877F2" : "#CFD6DF", position: "relative" }}>
+                                  <span
+                                    style={{
+                                      position: "absolute",
+                                      top: 3,
+                                      left: 3 + knob * 20,
+                                      width: 20,
+                                      height: 20,
+                                      borderRadius: "50%",
+                                      background: "#fff",
+                                      boxShadow: "0 1px 4px rgba(23,32,46,.3)",
+                                    }}
+                                  />
+                                </span>
+                              </span>
+                              <span style={{ flex: COLS.name, fontWeight: 700 }}>{name}</span>
+                              <span style={{ flex: COLS.aud, color: LC.ink2, fontSize: 18 }}>{aud}</span>
+                              <span style={{ flex: COLS.status, display: "flex", alignItems: "center", gap: 9, fontSize: 18, color: flipped ? "#31A24C" : LC.ink3 }}>
+                                <span style={{ width: 9, height: 9, borderRadius: "50%", background: flipped ? "#31A24C" : "#98A2B3" }} />
+                                {flipped ? "使用中" : "審查中"}
+                              </span>
+                              <span style={{ flex: COLS.budget, fontFamily: FONT_MONO, fontSize: 19, color: LC.ink2 }}>{budget}</span>
+                              <span style={{ flex: COLS.spend, fontFamily: FONT_MONO, fontSize: 19, color: LC.ink3 }}>NT$0</span>
+                            </div>
+                          );
+                        })}
+                        {/* 總計列 */}
+                        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 22px", background: LC.bg, borderTop: `1px solid ${LC.border}`, fontSize: 16, color: LC.ink2, opacity: clamp(frame, [634, 648], [0, 1]) }}>
+                          <span>3 個廣告組合 — 由 FORESIGHT 建立</span>
+                          <span style={{ fontFamily: FONT_MONO }}>日預算總計 NT$26,000</span>
+                        </div>
                       </div>
                     );
-                  })}
+                  })()}
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      marginTop: 6,
+                      marginTop: 2,
                       opacity: clamp(frame, [648, 664], [0, 1]),
                     }}
                   >
                     <div style={{ fontSize: 23, color: LC.ink2 }}>
-                      {check > 0 ? "已核准，開始投放 — 每一筆都有人看過才出手" : "3 個廣告組合已備妥，等待核准"}
+                      {check > 0 ? "已核准，開始投放 — 每一筆都有人看過才出手" : "已寫進廣告後台，等待核准"}
                     </div>
                     <div
                       style={{
@@ -717,9 +819,9 @@ const M4to7: React.FC = () => {
           />
           <Cursor
             ways={[
-              { t: 668, x: 1230, y: 530 },
-              { t: 702, x: 1396, y: 462 },
-              { t: 712, x: 1396, y: 462, click: true },
+              { t: 668, x: 1200, y: 586 },
+              { t: 702, x: 1408, y: 551 },
+              { t: 712, x: 1408, y: 551, click: true },
             ]}
             hideAfter={752}
           />
