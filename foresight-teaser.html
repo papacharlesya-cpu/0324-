@@ -1,0 +1,467 @@
+<title>Foresight Teaser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+  /* ============ 深色舞台單一主題（投影場合刻意定調，不做亮色版） ============ */
+  :root{
+    --ground:#060A14;
+    --panel:#0C1322;
+    --hairline:#1B2438;
+    --ink:#EEF3FB;
+    --ink-2:#8B96AC;
+    --ink-3:#57627A;
+    --data:#5590FF;      /* 資料層 */
+    --judge:#C97F12;     /* 判斷層 */
+    --exec:#17A873;      /* 執行層 */
+    --data-soft:rgba(85,144,255,.16);
+    --judge-soft:rgba(201,127,18,.16);
+    --exec-soft:rgba(23,168,115,.16);
+    --display:'Noto Sans TC',-apple-system,'PingFang TC','Microsoft JhengHei',sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--ground);
+    color:var(--ink);
+    font-family:var(--display);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ============ 舞台 ============ */
+  #stage{position:fixed;inset:0;cursor:pointer}
+  .scene{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:6vh 8vw;text-align:center;
+    opacity:0;visibility:hidden;
+    transition:opacity .7s ease,visibility 0s .7s;
+  }
+  .scene.active{opacity:1;visibility:visible;transition:opacity .7s ease}
+
+  .eyebrow{
+    font-family:var(--mono);font-size:clamp(11px,1.1vw,15px);font-weight:600;
+    letter-spacing:.32em;color:var(--ink-3);text-transform:uppercase;
+    margin-bottom:3.2vh;
+  }
+  .display{
+    font-weight:900;font-size:clamp(30px,5.2vw,74px);line-height:1.22;
+    letter-spacing:.02em;text-wrap:balance;max-width:26em;
+  }
+  .sub{
+    font-size:clamp(15px,1.6vw,22px);color:var(--ink-2);line-height:1.8;
+    margin-top:3vh;max-width:34em;text-wrap:balance;
+  }
+  .foot{
+    font-family:var(--mono);font-size:clamp(10px,1vw,13px);color:var(--ink-3);
+    letter-spacing:.14em;margin-top:4.5vh;
+  }
+
+  /* 進場動畫元件：預設藏起，場景 active 才播 */
+  .rise{opacity:0;transform:translateY(26px)}
+  .scene.active .rise{animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
+  .scene.active .d1{animation-delay:.15s}
+  .scene.active .d2{animation-delay:.5s}
+  .scene.active .d3{animation-delay:.9s}
+  .scene.active .d4{animation-delay:1.3s}
+  .scene.active .d5{animation-delay:1.7s}
+  @keyframes rise{to{opacity:1;transform:none}}
+
+  /* ============ S1 開場 ============ */
+  #s1 .display{font-size:clamp(34px,6vw,88px)}
+
+  /* ============ S2 資料規模 ============ */
+  #particles{position:absolute;inset:0;width:100%;height:100%}
+  #s2 .inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center}
+  .counter{
+    font-family:var(--mono);font-weight:600;
+    font-size:clamp(44px,8.6vw,132px);letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;color:var(--ink);
+    text-shadow:0 0 60px rgba(85,144,255,.35);
+  }
+  .counter-unit{font-size:clamp(16px,2vw,28px);color:var(--data);font-weight:700;margin-top:1.6vh;letter-spacing:.1em}
+
+  /* ============ S3 操作因果 ============ */
+  .oplog{
+    margin-top:4.5vh;display:flex;flex-direction:column;gap:1.4vh;
+    font-family:var(--mono);font-size:clamp(12px,1.4vw,18px);
+    color:var(--ink-2);text-align:left;
+  }
+  .oplog .row{
+    display:flex;gap:1.6em;align-items:baseline;
+    opacity:0;transform:translateX(-14px);
+    border-left:2px solid var(--hairline);padding:.35em 0 .35em 1.2em;
+  }
+  .scene.active .oplog .row{animation:slot .55s ease forwards}
+  .scene.active .oplog .row:nth-child(1){animation-delay:1.1s}
+  .scene.active .oplog .row:nth-child(2){animation-delay:1.6s}
+  .scene.active .oplog .row:nth-child(3){animation-delay:2.1s}
+  .scene.active .oplog .row:nth-child(4){animation-delay:2.6s}
+  @keyframes slot{to{opacity:1;transform:none}}
+  .oplog .act{color:var(--ink);min-width:11em}
+  .oplog .res{color:var(--exec)}
+
+  /* ============ S4 十五年廣度 ============ */
+  .chips{display:flex;flex-wrap:wrap;gap:1.2vh 1vw;justify-content:center;margin-top:4.5vh;max-width:52em}
+  .chip{
+    font-size:clamp(13px,1.4vw,18px);color:var(--ink-2);
+    border:1px solid var(--hairline);border-radius:999px;
+    padding:.45em 1.2em;background:var(--panel);
+    opacity:0;transform:scale(.9);
+  }
+  .scene.active .chip{animation:pop .45s cubic-bezier(.2,.7,.3,1.3) forwards}
+  .scene.active .chip:nth-child(1){animation-delay:.9s}.scene.active .chip:nth-child(2){animation-delay:1.05s}
+  .scene.active .chip:nth-child(3){animation-delay:1.2s}.scene.active .chip:nth-child(4){animation-delay:1.35s}
+  .scene.active .chip:nth-child(5){animation-delay:1.5s}.scene.active .chip:nth-child(6){animation-delay:1.65s}
+  .scene.active .chip:nth-child(7){animation-delay:1.8s}.scene.active .chip:nth-child(8){animation-delay:1.95s}
+  .scene.active .chip:nth-child(9){animation-delay:2.1s}.scene.active .chip:nth-child(10){animation-delay:2.25s}
+  @keyframes pop{to{opacity:1;transform:none}}
+
+  /* ============ S5 三層引擎 ============ */
+  .layers{display:flex;flex-direction:column;gap:2vh;margin-top:4.5vh;width:min(88vw,780px)}
+  .layer{
+    display:flex;align-items:center;gap:1.4em;text-align:left;
+    background:var(--panel);border:1px solid var(--hairline);border-radius:14px;
+    padding:2.2vh 2em;opacity:0;transform:translateY(22px);
+  }
+  .scene.active .layer{animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .scene.active .layer:nth-child(1){animation-delay:1s}
+  .scene.active .layer:nth-child(2){animation-delay:1.7s}
+  .scene.active .layer:nth-child(3){animation-delay:2.4s}
+  .layer .no{font-family:var(--mono);font-size:clamp(11px,1vw,13px);letter-spacing:.2em;color:var(--ink-3)}
+  .layer .dot{width:14px;height:14px;border-radius:4px;flex:none}
+  .layer.l-data .dot{background:var(--data)}
+  .layer.l-judge .dot{background:var(--judge)}
+  .layer.l-exec .dot{background:var(--exec)}
+  .layer h3{font-size:clamp(17px,2vw,26px);font-weight:900;letter-spacing:.06em}
+  .layer p{font-size:clamp(13px,1.4vw,17px);color:var(--ink-2);margin-top:.3em;line-height:1.6}
+  .layer.l-data{background:linear-gradient(90deg,var(--data-soft),var(--panel) 55%)}
+  .layer.l-judge{background:linear-gradient(90deg,var(--judge-soft),var(--panel) 55%)}
+  .layer.l-exec{background:linear-gradient(90deg,var(--exec-soft),var(--panel) 55%)}
+
+  /* ============ S6 Pre-flight 模擬 ============ */
+  .mockwrap{
+    display:flex;gap:2.5vw;margin-top:4vh;width:min(92vw,980px);
+    align-items:stretch;text-align:left;
+  }
+  .mockpanel{
+    background:var(--panel);border:1px solid var(--hairline);border-radius:16px;
+    padding:2.6vh 2em;flex:1;min-width:0;
+  }
+  .mockpanel h4{
+    font-family:var(--mono);font-size:clamp(10px,1vw,13px);letter-spacing:.24em;
+    color:var(--ink-3);margin-bottom:2vh;text-transform:uppercase;
+  }
+  .field{
+    display:flex;justify-content:space-between;gap:1em;
+    font-size:clamp(13px,1.5vw,18px);padding:1.2vh 0;
+    border-bottom:1px solid var(--hairline);
+    opacity:0;
+  }
+  .scene.active .field{animation:slot .5s ease forwards}
+  .scene.active .field:nth-of-type(1){animation-delay:1s}
+  .scene.active .field:nth-of-type(2){animation-delay:1.5s}
+  .scene.active .field:nth-of-type(3){animation-delay:2s}
+  .field .k{color:var(--ink-2)}
+  .field .v{font-family:var(--mono);color:var(--ink)}
+  .band-note{font-size:clamp(12px,1.3vw,16px);color:var(--ink-2);line-height:1.7;margin-top:2vh}
+  .gauge{margin-top:2.4vh}
+  .gauge svg{width:100%;height:auto;display:block;overflow:visible}
+  .risks{margin-top:2.4vh;display:flex;flex-direction:column;gap:1vh}
+  .risk{
+    display:flex;align-items:center;gap:.8em;
+    font-size:clamp(12px,1.35vw,16px);color:var(--ink-2);opacity:0;
+  }
+  .scene.active .risk:nth-child(1){animation:slot .5s ease 4.6s forwards}
+  .scene.active .risk:nth-child(2){animation:slot .5s ease 5.1s forwards}
+  .risk::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--judge);flex:none}
+  .badge{
+    font-family:var(--mono);font-size:clamp(9px,.9vw,12px);letter-spacing:.18em;
+    color:var(--ink-3);border:1px solid var(--hairline);border-radius:999px;
+    padding:.4em 1.1em;margin-top:3vh;display:inline-block;
+  }
+  /* 預測帶動畫 */
+  .gband{transform:scaleX(0);transform-origin:left}
+  .scene.active .gband{animation:grow 1.1s cubic-bezier(.2,.7,.2,1) 3s forwards}
+  @keyframes grow{to{transform:scaleX(1)}}
+  .glabel{opacity:0}
+  .scene.active .glabel{animation:slot .5s ease 4s forwards}
+
+  /* ============ S7 收尾 ============ */
+  .wordmark{
+    font-family:var(--mono);font-weight:600;
+    font-size:clamp(40px,7.4vw,110px);letter-spacing:.18em;
+    background:linear-gradient(100deg,var(--ink) 30%,var(--data) 85%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .tagline{font-size:clamp(18px,2.4vw,32px);font-weight:700;margin-top:3vh;letter-spacing:.08em}
+
+  /* ============ 進度條與提示 ============ */
+  #progress{
+    position:fixed;left:8vw;right:8vw;bottom:4.5vh;z-index:10;
+    display:flex;gap:8px;
+  }
+  #progress .seg{flex:1;height:2px;background:var(--hairline);border-radius:2px;overflow:hidden}
+  #progress .seg i{display:block;height:100%;width:0%;background:var(--ink-2)}
+  #hint{
+    position:fixed;right:8vw;bottom:7vh;z-index:10;
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--ink-3);
+    opacity:1;transition:opacity 1s;
+  }
+  #hint.gone{opacity:0}
+  #paused-tag{
+    position:fixed;left:8vw;bottom:7vh;z-index:10;display:none;
+    font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--judge);
+  }
+  body.paused #paused-tag{display:block}
+
+  @media (prefers-reduced-motion:reduce){
+    .rise,.chip,.layer,.field,.risk,.oplog .row,.glabel{opacity:1!important;transform:none!important;animation:none!important}
+    .gband{transform:none!important;animation:none!important}
+    .scene{transition:none}
+  }
+</style>
+
+<div id="stage">
+
+  <!-- S1 開場 -->
+  <section class="scene" id="s1" data-dur="5200">
+    <p class="eyebrow rise">2026 · cacaFly GROUP</p>
+    <h1 class="display rise d1">還沒有人做過這件事。</h1>
+  </section>
+
+  <!-- S2 資料規模 -->
+  <section class="scene" id="s2" data-dur="9000">
+    <canvas id="particles"></canvas>
+    <div class="inner">
+      <p class="eyebrow rise">SCALE · 每一個月</p>
+      <div class="counter rise d1" id="bignum">0</div>
+      <div class="counter-unit rise d1">筆 Meta 成效資料，流進集團</div>
+      <p class="foot rise d3">聚合統計 · 去識別化</p>
+    </div>
+  </section>
+
+  <!-- S3 操作因果 -->
+  <section class="scene" id="s3" data-dur="10500">
+    <p class="eyebrow rise">CAUSALITY · 不只是數據</p>
+    <h2 class="display rise d1">數據誰都有，<br>因果只有我們有。</h2>
+    <p class="sub rise d2">數百萬筆操作紀錄：做了什麼、發生了什麼，全部留下來。</p>
+    <div class="oplog">
+      <div class="row"><span class="act">調預算 +20%</span><span class="res">ROAS 2.1 ▸ 2.6</span></div>
+      <div class="row"><span class="act">換素材 痛點切角</span><span class="res">CTR +38%</span></div>
+      <div class="row"><span class="act">改受眾 LAL 3%</span><span class="res">CPA −22%</span></div>
+      <div class="row"><span class="act">停放大量字組</span><span class="res">CPC −41%</span></div>
+    </div>
+    <p class="foot rise d5">示意資料</p>
+  </section>
+
+  <!-- S4 十五年廣度 -->
+  <section class="scene" id="s4" data-dur="8500">
+    <p class="eyebrow rise">DEPTH · SINCE 2011</p>
+    <h2 class="display rise d1">十五年，四百多個帳戶，<br>全部自己動手。</h2>
+    <div class="chips">
+      <span class="chip">零售</span><span class="chip">金融</span><span class="chip">CPG</span>
+      <span class="chip">醫藥</span><span class="chip">電商</span><span class="chip">房產</span>
+      <span class="chip">戶外用品</span><span class="chip">汽機車</span><span class="chip">美妝</span>
+      <span class="chip">保健食品</span>
+    </div>
+  </section>
+
+  <!-- S5 三層引擎 -->
+  <section class="scene" id="s5" data-dur="10500">
+    <p class="eyebrow rise">THE ENGINE</p>
+    <h2 class="display rise d1">不是儀表板，<br>是會動手的引擎。</h2>
+    <div class="layers">
+      <div class="layer l-data">
+        <span class="dot"></span>
+        <div><h3>資料層</h3><p>每月三億筆成效資料，持續累積、持續更新</p></div>
+      </div>
+      <div class="layer l-judge">
+        <span class="dot"></span>
+        <div><h3>判斷層</h3><p>十五年資深操作判斷，一條一條寫進系統</p></div>
+      </div>
+      <div class="layer l-exec">
+        <span class="dot"></span>
+        <div><h3>執行層</h3><p>AI agent 直連廣告帳戶，判斷完直接動手</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S6 Pre-flight 模擬 -->
+  <section class="scene" id="s6" data-dur="13000">
+    <p class="eyebrow rise">PRE-FLIGHT · 產品預覽</p>
+    <h2 class="display rise d1">花錢之前，先看到結果。</h2>
+    <div class="mockwrap rise d2">
+      <div class="mockpanel">
+        <h4>Campaign 條件</h4>
+        <div class="field"><span class="k">產業</span><span class="v">保健食品</span></div>
+        <div class="field"><span class="k">月預算</span><span class="v">NT$800,000</span></div>
+        <div class="field"><span class="k">目標</span><span class="v">EC 購買</span></div>
+        <p class="band-note">比對同產業、同量級的歷史操作結果，投放前先算出合理區間，以及會卡住的環節。</p>
+      </div>
+      <div class="mockpanel">
+        <h4>預測 ROAS 區間</h4>
+        <div class="gauge">
+          <svg viewBox="0 0 400 120" aria-label="預測 ROAS 區間 1.6 到 2.4，中位 2.0">
+            <line x1="20" y1="70" x2="380" y2="70" stroke="#1B2438" stroke-width="2"/>
+            <g font-family="IBM Plex Mono,monospace" font-size="12" fill="#57627A">
+              <text x="20" y="96" text-anchor="middle">0</text>
+              <text x="140" y="96" text-anchor="middle">1.0</text>
+              <text x="260" y="96" text-anchor="middle">2.0</text>
+              <text x="380" y="96" text-anchor="middle">3.0</text>
+            </g>
+            <rect class="gband" x="212" y="54" width="96" height="32" rx="4" fill="rgba(85,144,255,.22)" stroke="#5590FF" stroke-width="2"/>
+            <line class="glabel" x1="260" y1="50" x2="260" y2="90" stroke="#5590FF" stroke-width="2"/>
+            <g class="glabel" font-family="IBM Plex Mono,monospace" font-size="13" fill="#EEF3FB">
+              <text x="212" y="40" text-anchor="middle">1.6</text>
+              <text x="260" y="26" text-anchor="middle" font-weight="600">預期 2.0</text>
+              <text x="308" y="40" text-anchor="middle">2.4</text>
+            </g>
+          </svg>
+        </div>
+        <div class="risks">
+          <div class="risk">第 3 週：素材疲勞風險，預先備第二波切角</div>
+          <div class="risk">第 4 週：再行銷受眾池見頂，需擴上層蓄水</div>
+        </div>
+      </div>
+    </div>
+    <span class="badge rise d3">產品模擬畫面 · 非實際數據</span>
+  </section>
+
+  <!-- S7 收尾 -->
+  <section class="scene" id="s7" data-dur="8500">
+    <p class="eyebrow rise">NOW BUILDING</p>
+    <div class="wordmark rise d1">FORESIGHT</div>
+    <p class="sub rise d2">cacaFly 決策智慧引擎 · 打造中</p>
+    <p class="tagline rise d3">花錢之前，先知道結果。</p>
+    <p class="foot rise d4">cacaFly GROUP · TAIWAN</p>
+  </section>
+
+</div>
+
+<div id="progress"></div>
+<div id="hint">點擊或 → 下一幕 · ← 上一幕 · 空白鍵 暫停</div>
+<div id="paused-tag">PAUSED</div>
+
+<script>
+(function(){
+  var scenes=[].slice.call(document.querySelectorAll('.scene'));
+  var reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var idx=-1,timer=null,paused=false,segFills=[],rafId=null,sceneStart=0,sceneDur=0,elapsedAtPause=0;
+
+  /* 進度條 */
+  var prog=document.getElementById('progress');
+  scenes.forEach(function(){
+    var seg=document.createElement('div');seg.className='seg';
+    var i=document.createElement('i');seg.appendChild(i);prog.appendChild(seg);
+    segFills.push(i);
+  });
+
+  function setSeg(){
+    segFills.forEach(function(f,i){
+      if(i<idx)f.style.width='100%';
+      else if(i>idx)f.style.width='0%';
+    });
+  }
+  function tick(){
+    if(paused)return;
+    var el=Date.now()-sceneStart;
+    segFills[idx].style.width=Math.min(100,el/sceneDur*100)+'%';
+    if(el<sceneDur)rafId=requestAnimationFrame(tick);
+  }
+
+  function show(n){
+    if(timer)clearTimeout(timer);
+    if(rafId)cancelAnimationFrame(rafId);
+    if(idx>=0)scenes[idx].classList.remove('active');
+    idx=(n+scenes.length)%scenes.length;
+    var sc=scenes[idx];
+    void sc.offsetWidth; /* 重觸發 CSS 動畫 */
+    sc.classList.add('active');
+    setSeg();
+    sceneDur=+sc.dataset.dur;sceneStart=Date.now();elapsedAtPause=0;
+    if(sc.id==='s2')runCounter();
+    if(!reduced&&!paused){
+      timer=setTimeout(function(){show(idx+1)},sceneDur);
+      rafId=requestAnimationFrame(tick);
+    }else{
+      segFills[idx].style.width='100%';
+    }
+  }
+
+  function pause(){
+    paused=true;document.body.classList.add('paused');
+    if(timer)clearTimeout(timer);
+    if(rafId)cancelAnimationFrame(rafId);
+    elapsedAtPause=Date.now()-sceneStart;
+  }
+  function resume(){
+    paused=false;document.body.classList.remove('paused');
+    if(reduced)return;
+    sceneStart=Date.now()-elapsedAtPause;
+    var remain=Math.max(400,sceneDur-elapsedAtPause);
+    timer=setTimeout(function(){show(idx+1)},remain);
+    rafId=requestAnimationFrame(tick);
+  }
+
+  /* 計數器：0 → 300,000,000 */
+  function runCounter(){
+    var el=document.getElementById('bignum'),T=2600,t0=null;
+    function fmt(x){return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+    if(reduced){el.textContent=fmt(3e8);return}
+    function step(ts){
+      if(!t0)t0=ts;
+      var p=Math.min(1,(ts-t0)/T),e=1-Math.pow(1-p,4);
+      el.textContent=fmt(Math.round(3e8*e));
+      if(p<1&&scenes[idx].id==='s2')requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* 粒子流：資料匯入的視覺母題 */
+  var cv=document.getElementById('particles'),ctx=cv.getContext('2d'),pts=[];
+  function sizeCanvas(){cv.width=innerWidth;cv.height=innerHeight}
+  sizeCanvas();addEventListener('resize',sizeCanvas);
+  for(var i=0;i<260;i++)pts.push(newPt(true));
+  function newPt(any){
+    var edge=Math.random();
+    return{
+      x:any?Math.random()*innerWidth:(edge<.5?-10:innerWidth+10),
+      y:Math.random()*innerHeight,
+      vx:(Math.random()*.9+.35)*(Math.random()<.5?1:-1),
+      vy:(Math.random()-.5)*.3,
+      r:Math.random()*1.6+.5,
+      a:Math.random()*.5+.15
+    };
+  }
+  function drawPts(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    var cx=cv.width/2,cy=cv.height/2;
+    pts.forEach(function(p,i){
+      /* 往中心微弱牽引，形成匯流感 */
+      p.vx+=(cx-p.x)*0.000012;p.vy+=(cy-p.y)*0.0000012;
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<-20||p.x>cv.width+20||p.y<-20||p.y>cv.height+20)pts[i]=newPt(false);
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.283);
+      ctx.fillStyle='rgba(85,144,255,'+p.a+')';ctx.fill();
+    });
+    if(scenes[idx]&&scenes[idx].id==='s2'&&!reduced)requestAnimationFrame(drawPts);
+  }
+  /* 場景切到 s2 時啟動粒子 */
+  var origShow=show;
+  show=function(n){origShow(n);if(scenes[idx].id==='s2'&&!reduced)requestAnimationFrame(drawPts)};
+
+  /* 操控 */
+  var hint=document.getElementById('hint');
+  setTimeout(function(){hint.classList.add('gone')},6000);
+  document.getElementById('stage').addEventListener('click',function(){show(idx+1)});
+  addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'){show(idx+1)}
+    else if(e.key==='ArrowLeft'){show(idx-1)}
+    else if(e.key===' '){e.preventDefault();paused?resume():pause()}
+  });
+
+  show(0);
+})();
+</script>
