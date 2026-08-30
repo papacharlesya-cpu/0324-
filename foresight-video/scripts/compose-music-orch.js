@@ -254,7 +254,8 @@ const chordAt = (t) => {
   if (t >= 36.0) return Fch; // IV：轉調預備
   return PROG[Math.floor((t - 4.8) / BAR) % 4];
 };
-const inBreath = (t) => (t >= 38.8 && t < 40.0) || (t >= 57.2 && t < 62.0);
+/* 呼吸段對齊小節線（56.8 = 40 起第 7 小節），不再用畫面切點 57.2 */
+const inBreath = (t) => (t >= 38.8 && t < 40.0) || (t >= 56.8 && t < 61.6);
 
 /* ---------- 編曲 ---------- */
 
@@ -269,45 +270,51 @@ for (let t = 0.3; t < 4.6; t += BEAT) tick(t, 0.5);
 riser(4.6, 2.2, 0.5);
 
 // 大提琴 + 小提琴長音和弦：每小節，階梯上升
-for (let t = 4.8; t < 76.3; t += BAR) {
+// A 段錨在 4.8；B 段重新錨在 40.0（與和弦換位同一小節線）
+const padBars = [];
+for (let t = 4.8; t < 38.5; t += BAR) padBars.push(t);
+for (let t = 40.0; t < 74.5; t += BAR) padBars.push(t);
+for (const t of padBars) {
   if (inBreath(t)) continue;
   const c = chordAt(t);
-  const lvl = t < 13.2 ? 0.42 : t < 22.8 ? 0.6 : t < 30.4 ? 0.6 : t < 40 ? 0.7 : t < 66.8 ? 0.75 : 0.9;
+  const lvl = t < 13.2 ? 0.42 : t < 22.8 ? 0.6 : t < 30.4 ? 0.6 : t < 40 ? 0.7 : t < 66.4 ? 0.75 : 0.9;
+  /* 尾巴不越過 76.2：硬切之後不能有舊段落的殘音冒回來 */
+  const capLen = Math.min(BAR + 0.3, Math.max(0.4, 76.2 - t));
   // 大提琴：根音 + 五度
-  note(t, "vcSus", c.low + 12, { dyn: t < 40 ? 1 : 3, gain: lvl, atk: 0.5, maxLen: BAR + 0.3, rel: 0.9, send: 0.45, pan: -0.25 });
-  note(t + 0.02, "vcSus", c.low + 19, { dyn: 1, gain: lvl * 0.7, atk: 0.6, maxLen: BAR + 0.2, rel: 0.9, send: 0.45, pan: -0.15 });
+  note(t, "vcSus", c.low + 12, { dyn: t < 40 ? 1 : 3, gain: lvl, atk: 0.5, maxLen: capLen, rel: 0.9, send: 0.45, pan: -0.25 });
+  note(t + 0.02, "vcSus", c.low + 19, { dyn: 1, gain: lvl * 0.7, atk: 0.6, maxLen: capLen - 0.1, rel: 0.9, send: 0.45, pan: -0.15 });
   // 小提琴組長音：13.2 起兩聲部
   if (t >= 13.2) {
-    note(t + 0.01, "vlnSus", c.chord[1], { dyn: t < 40 ? 1 : 2, gain: lvl, atk: 0.55, maxLen: BAR + 0.3, rel: 0.9, send: 0.5, pan: 0.2 });
-    note(t + 0.03, "vlnSus", c.chord[2], { dyn: 1, gain: lvl * 0.65, atk: 0.6, maxLen: BAR + 0.2, rel: 0.9, send: 0.5, pan: 0.3 });
+    note(t + 0.01, "vlnSus", c.chord[1], { dyn: t < 40 ? 1 : 2, gain: lvl, atk: 0.55, maxLen: capLen, rel: 0.9, send: 0.5, pan: 0.2 });
+    note(t + 0.03, "vlnSus", c.chord[2], { dyn: 1, gain: lvl * 0.65, atk: 0.6, maxLen: capLen - 0.1, rel: 0.9, send: 0.5, pan: 0.3 });
   }
   // sub 跟根音
-  sub(t, BAR + 0.2, 440 * Math.pow(2, (c.low - 69) / 12), t < 22.8 ? 0.7 : 1.0);
+  sub(t, Math.min(BAR + 0.2, Math.max(0.4, 76.2 - t)), 440 * Math.pow(2, (c.low - 69) / 12), t < 22.8 ? 0.7 : 1.0);
 }
 // 38.8–40 懸浮：小提琴長音撐住
 note(38.8, "vlnSus", 55, { dyn: 1, gain: 0.5, atk: 0.3, maxLen: 1.4, rel: 0.6, send: 0.6 });
 note(38.82, "vlnSus", 62, { dyn: 1, gain: 0.45, atk: 0.3, maxLen: 1.4, rel: 0.6, send: 0.6 });
 
 // 小提琴斷奏 ostinato：8 分（音型 根-根-5度-8度），66.8 起 16 分
-for (let t = 4.8; t < 76.3; t += BEAT / 2) {
-  if (inBreath(t) && !(t >= 57.2 && t < 62.0)) continue; // 57.2 呼吸段保留 ostinato
-  if (t >= 38.8 && t < 40.0) continue;
+// A 段：小提琴 ostinato + 大提琴正拍（4.8 錨點）
+for (let t = 4.8; t < 38.8; t += BEAT / 2) {
   const c = chordAt(t);
   const step = Math.round((t - 4.8) / (BEAT / 2));
-  if (t < 38.8) {
-    // A 段：小提琴 ostinato + 大提琴正拍
-    const patt = [0, 0, 7, 12];
-    const dyn = t < 22.8 ? 1 : 2;
-    const lvl = t < 13.2 ? 0.5 : t < 30.4 ? 0.6 : 0.7;
-    note(t, "vlnSpic", c.root + 12 + patt[step % 4], { dyn, gain: lvl, pan: 0.15, send: 0.3 });
-    if (t >= 22.8 && step % 2 === 0) note(t, "vcSpic", c.root, { dyn, gain: lvl * 0.8, pan: -0.2, send: 0.3 });
-  } else {
-    // B 段：大提琴 riff 當節奏引擎，小提琴讓位給 B 主題
-    const patt = [0, 0, 7, 0];
-    const lvl = t < 66.8 ? 0.75 : 0.85;
-    note(t, "vcSpic", c.root + patt[step % 4], { dyn: 2, gain: lvl, pan: -0.2, send: 0.3 });
-    if (t >= 66.8) note(t + BEAT / 4, "vlnSpic", c.root + 24, { dyn: 2, gain: 0.5, pan: 0.25, send: 0.3 });
-  }
+  const patt = [0, 0, 7, 12];
+  const dyn = t < 22.8 ? 1 : 2;
+  const lvl = t < 13.2 ? 0.5 : t < 30.4 ? 0.6 : 0.7;
+  note(t, "vlnSpic", c.root + 12 + patt[step % 4], { dyn, gain: lvl, pan: 0.15, send: 0.3 });
+  if (t >= 22.8 && step % 2 === 0) note(t, "vcSpic", c.root, { dyn, gain: lvl * 0.8, pan: -0.2, send: 0.3 });
+}
+// B 段：大提琴 riff 當節奏引擎，重新錨在 40.0 —— 與節奏組同一網格
+//（4.8 錨點的 0.3 步進到不了 40.0，沿用會讓 riff 與鼓永遠差 0.1s）
+for (let t = 40.0; t < 76.3; t += BEAT / 2) {
+  const c = chordAt(t);
+  const step = Math.round((t - 40.0) / (BEAT / 2));
+  const patt = [0, 0, 7, 0];
+  const lvl = t < 66.4 ? 0.75 : 0.85;
+  note(t, "vcSpic", c.root + patt[step % 4], { dyn: 2, gain: lvl, pan: -0.2, send: 0.3 });
+  if (t >= 66.4) note(t + BEAT / 4, "vlnSpic", c.root + 24, { dyn: 2, gain: 0.5, pan: 0.25, send: 0.3 });
 }
 
 // A 主題（敘事段）：法國號長音，尾音 B = 新調的屬音預備
@@ -330,17 +337,17 @@ bTheme(40.0, 0, 0.8, false);
 bTheme(44.8, 0, 0.85, true);
 bTheme(49.6, 0, 0.9, true);
 for (const [dt, m, len] of BT_A.slice(0, 3)) note(54.4 + dt, "vlnSus", m, { dyn: 2, gain: 0.8, atk: 0.09, maxLen: len, rel: 0.5, send: 0.5, pan: 0.15 });
-bTheme(62.0, 12, 0.9, true);
-bTheme(66.8, 12, 1.0, true);
-bTheme(71.6, 12, 1.0, true);
+bTheme(61.6, 12, 0.9, true);
+bTheme(66.4, 12, 1.0, true);
+bTheme(71.2, 12, 1.0, true);
 
 // 鋼琴動機回聲：稀疏點綴（每 8 小節一句）
-for (const [t, m] of [[14.4, 81], [24.0, 84], [33.6, 81], [43.2, 88], [52.8, 84], [62.4, 88]]) {
+for (const [t, m] of [[14.4, 81], [24.0, 84], [33.6, 81], [43.2, 88], [52.8, 84], [62.8, 88]]) {
   pianoNote(t, m, { dyn: 1, gain: 0.5, send: 0.6, pan: 0.1 });
 }
 
-// 豎琴：段落開頭上行琶音（40 / 47.6 / 62 / 66.8）
-for (const t0 of [40.0, 47.6, 62.0, 66.8]) {
+// 豎琴：段落開頭上行琶音（對齊節拍網格）
+for (const t0 of [40.0, 47.8, 61.6, 66.4]) {
   const c = chordAt(t0);
   [0, 1, 2, 3].forEach((i) => {
     note(t0 + i * 0.09, "harp", c.chord[i % 3] + 12 * Math.floor(i / 3) + 12, { gain: 0.55, pan: 0.35, send: 0.5 });
@@ -359,34 +366,37 @@ hit(39.9, timpHits, { gain: 0.8, send: 0.4 });
 hitEnd(40.0, susCresc, { gain: 0.55, send: 0.5 });
 hit(40.0, crash, { gain: 0.75, send: 0.5 });
 
-// 半速律動（40–57.2）：kick 1、3 拍，軍鼓 3 拍 backbeat（重量感）
-for (let t = 40.0; t < 57.2; t += BAR) {
+/* 節奏組全部鎖在 40.0 建立的網格上（拍 0.6s、小節 2.4s）：
+   段落切換用最近的小節線（56.8 / 61.6 / 66.4 / 71.2），
+   不再直接用畫面切點（57.2 / 62 / 66.8 / 71），避免與 riff 錯位拖拍。 */
+// 半速律動（40–56.8）：kick 1、3 拍，軍鼓 3 拍 backbeat（重量感）
+for (let t = 40.0; t < 56.8; t += BAR) {
   ekick(t, 0.85);
   ekick(t + BEAT * 2, 0.7);
   hit(t + BEAT * 2, snares, { gain: 0.42, send: 0.45 });
 }
-// 鈴鼓 8 分：47.6 起加入
-for (let t = 47.6; t < 57.2; t += BEAT / 2) hit(t, tambs, { gain: 0.26, send: 0.3 });
-// 呼吸段（57.2–62）：只留 kick 心跳
-for (let t = 57.2; t < 62.0; t += BAR) ekick(t, 0.5);
-// 全速律動（62–76.3）：four-on-floor + 軍鼓 2、4 拍（雙倍時感 = 再升一級）
-for (let t = 62.0; t < 76.3; t += BEAT) ekick(t, 0.8);
-for (let t = 62.0 + BEAT; t < 76.3; t += BEAT * 2) hit(t, snares, { gain: 0.46, send: 0.45 });
-for (let t = 62.0; t < 71.0; t += BEAT / 2) hit(t, tambs, { gain: 0.28, send: 0.3 });
-for (let t = 71.0; t < 76.3; t += BEAT / 4) hit(t, tambs, { gain: 0.3, send: 0.3 });
+// 鈴鼓 8 分：47.8 起加入
+for (let t = 47.8; t < 56.8; t += BEAT / 2) hit(t, tambs, { gain: 0.26, send: 0.3 });
+// 呼吸段（56.8–61.6）：只留 kick 心跳（小節線上）
+for (let t = 56.8; t < 61.6; t += BAR) ekick(t, 0.5);
+// 全速律動（61.6–76.3）：four-on-floor + 軍鼓 2、4 拍（雙倍時感 = 再升一級）
+for (let t = 61.6; t < 76.3; t += BEAT) ekick(t, 0.8);
+for (let t = 61.6 + BEAT; t < 76.3; t += BEAT * 2) hit(t, snares, { gain: 0.46, send: 0.45 });
+for (let t = 61.6; t < 71.2; t += BEAT / 2) hit(t, tambs, { gain: 0.28, send: 0.3 });
+for (let t = 71.2; t < 76.3; t += BEAT / 4) hit(t, tambs, { gain: 0.3, send: 0.3 });
 
-// 定音鼓：22.8 起小節重拍（前段不變），62 起每兩拍，71 起加密
+// 定音鼓：22.8 起小節重拍；呼吸段完全停；61.6 起每兩拍，71.2 起加密
 for (let t = 22.8; t < 38.8; t += BAR) hit(t, timpHits, { gain: 0.55, send: 0.4 });
-for (let t = 40.0; t < 62.0; t += BAR) hit(t, timpHits, { gain: 0.6, send: 0.4 });
-for (let t = 62.0; t < 71.0; t += BEAT * 2) hit(t, timpHits, { gain: 0.65, send: 0.4 });
-for (let t = 71.0; t < 74.6; t += BEAT) hit(t, timpHits, { gain: 0.7, send: 0.4 });
-for (let t = 74.6; t < 76.3; t += BEAT / 2) hit(t, timpHits, { gain: 0.8, send: 0.4 });
+for (let t = 40.0; t < 56.8; t += BAR) hit(t, timpHits, { gain: 0.6, send: 0.4 });
+for (let t = 61.6; t < 71.2; t += BEAT * 2) hit(t, timpHits, { gain: 0.65, send: 0.4 });
+for (let t = 71.2; t < 73.6; t += BEAT) hit(t, timpHits, { gain: 0.7, send: 0.4 });
+for (let t = 74.8; t < 76.3; t += BEAT / 2) hit(t, timpHits, { gain: 0.8, send: 0.4 });
 // 終點推進：定音鼓滾奏 + 軍鼓滾奏 + 吊鈸長漸強
 hit(73.6, timpRolls, { gain: 0.7, maxLen: 2.8, rel: 0.5, send: 0.5 });
-hit(74.6, snareRolls, { gain: 0.5, maxLen: 1.7, rel: 0.3, send: 0.5 });
+hit(74.8, snareRolls, { gain: 0.5, maxLen: 1.5, rel: 0.3, send: 0.5 });
 hitEnd(76.38, susCrescL, { gain: 0.7, send: 0.5 });
 // 大鼓：結構重音
-for (const [t, g] of [[4.6, 0.7], [22.8, 0.8], [40.0, 1.1], [62.0, 0.9], [66.8, 1.0]]) hit(t, bdrums, { gain: g, send: 0.45 });
+for (const [t, g] of [[4.6, 0.7], [22.8, 0.8], [40.0, 1.1], [61.6, 0.9], [66.4, 1.0]]) hit(t, bdrums, { gain: g, send: 0.45 });
 
 // 呼吸段（57.2–62）：鋼琴高音動機獨白
 pianoNote(57.5, 76, { dyn: 2, gain: 0.65, send: 0.6 });
