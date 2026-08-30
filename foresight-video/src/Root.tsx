@@ -2,6 +2,7 @@ import "./index.css";
 import React from "react";
 import { Composition, Folder } from "remotion";
 import { Foresight } from "./Foresight";
+import { ForesightMinute } from "./ForesightMinute";
 import { FPS, H, TOTAL, W } from "./theme";
 import { S1Open } from "./scenes/S1Open";
 import { S2Scale } from "./scenes/S2Scale";
@@ -30,6 +31,14 @@ export const RemotionRoot: React.FC = () => {
         component={Foresight}
         defaultProps={{ musicFile: "music-bright.wav" }}
         durationInFrames={TOTAL}
+        fps={FPS}
+        width={W}
+        height={H}
+      />
+      <Composition
+        id="ForesightMinute"
+        component={ForesightMinute}
+        durationInFrames={1800}
         fps={FPS}
         width={W}
         height={H}
