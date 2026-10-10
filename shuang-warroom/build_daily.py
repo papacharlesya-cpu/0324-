@@ -87,7 +87,7 @@ def num(v):
         return 0.0
 
 
-def build_rows(mkt, acct, fx, win_h=42):
+def build_rows(mkt, acct, fx, win_h=42, budget_major=False):
     """回傳 (rows, other, detail)。rows: 列名 -> 指標；other: 被略過的金額。"""
     keyfn = KEY_FN[mkt]
     rows = defaultdict(lambda: {"names": set(), "spend_day": 0.0, "value_day": 0.0,
@@ -98,8 +98,9 @@ def build_rows(mkt, acct, fx, win_h=42):
     # 每個活動／組合在各列的近N小時花費，拆預算用
     win_by_camp = defaultdict(lambda: defaultdict(float))
     win_by_adset = defaultdict(lambda: defaultdict(float))
-    active_by_camp = defaultdict(set)
-    active_by_adset = defaultdict(set)
+    # 每個活動／組合在各列的在線素材名稱，近N小時零花費時按素材數拆預算
+    active_by_camp = defaultdict(lambda: defaultdict(set))
+    active_by_adset = defaultdict(lambda: defaultdict(set))
 
     for ad in acct["ads"]:
         key, why = keyfn(ad)
@@ -108,8 +109,8 @@ def build_rows(mkt, acct, fx, win_h=42):
         active = ad.get("effective_status") == "ACTIVE"
         if active:
             r["names"].add(ad["ad_name"].strip())
-            active_by_camp[ad["campaign_id"]].add(key)
-            active_by_adset[ad["adset_id"]].add(key)
+            active_by_camp[ad["campaign_id"]][key].add(ad["ad_name"].strip())
+            active_by_adset[ad["adset_id"]][key].add(ad["ad_name"].strip())
         for f in ("spend_day", "value_day", "spend_win", "value_win"):
             r[f] += num(ad.get(f)) * fx
         r["campaigns"].add(ad["campaign_name"])
@@ -122,16 +123,19 @@ def build_rows(mkt, acct, fx, win_h=42):
     for b in acct.get("budgets", []):
         if b.get("effective_status", "ACTIVE") != "ACTIVE" or not b.get("daily_budget"):
             continue
-        amount = num(b["daily_budget"]) / BUDGET_OFFSET[cur] * fx
+        offset = 1 if budget_major else BUDGET_OFFSET[cur]  # 官方 MCP 回的預算已是元
+        amount = num(b["daily_budget"]) / offset * fx
         if b["level"] == "campaign":
-            spend_split, active_keys = win_by_camp.get(b["id"], {}), active_by_camp.get(b["id"], set())
+            spend_split, active_keys = win_by_camp.get(b["id"], {}), active_by_camp.get(b["id"], {})
         else:
-            spend_split, active_keys = win_by_adset.get(b["id"], {}), active_by_adset.get(b["id"], set())
+            spend_split, active_keys = win_by_adset.get(b["id"], {}), active_by_adset.get(b["id"], {})
         total = sum(spend_split.values())
+        n_active = sum(len(v) for v in active_keys.values())
         if total > 0:
             shares = {k: v / total for k, v in spend_split.items() if v > 0}
-        elif active_keys:
-            shares = {k: 1 / len(active_keys) for k in active_keys}
+        elif n_active:
+            # 10/5 修正：近N小時花費全為 0 時改按在線素材數分，避免除以零
+            shares = {k: len(v) / n_active for k, v in active_keys.items() if v}
         else:
             budget_notes.append(f"{mkt} {b['level']} {b['id']} 日預算 {amount:,.0f} 無在線廣告也無花費，未計入")
             continue
@@ -190,7 +194,7 @@ def main():
     heads = ["市場", "分列", "在線素材數", "當日花費", "當日後台轉換金額", "當日後台ROAS",
              f"近{win_h}小時花費", f"近{win_h}小時後台轉換金額", f"近{win_h}小時後台ROAS",
              "原日預算", "實銷", "備註"]
-    widths = [16, 44, 11, 13, 16, 13, 15, 19, 16, 13, 12, 28]
+    widths = [16, 52, 11, 13, 16, 13, 15, 19, 16, 13, 12, 28]
     for i, (h, w) in enumerate(zip(heads, widths), 1):
         c = ws.cell(row=4, column=i, value=h)
         c.font = Font(bold=True, color="FFFFFF")
@@ -200,6 +204,10 @@ def main():
         ws.column_dimensions[get_column_letter(i)].width = w
     ws.row_dimensions[4].height = 30
     ws.freeze_panes = "C5"
+    ws.page_setup.orientation = "landscape"
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
 
     money = '#,##0'
     roas = '0.00'
@@ -213,7 +221,7 @@ def main():
             notes.append(f"{title}：輸入檔沒有此帳戶資料")
             continue
         fx = FX[acct["currency"]]
-        rows, other, detail, bnotes = build_rows(mkt, acct, fx, win_h)
+        rows, other, detail, bnotes = build_rows(mkt, acct, fx, win_h, data.get("budget_in_major_units", False))
         all_detail += detail
         notes += bnotes
 
@@ -293,7 +301,8 @@ def main():
         tot_rows["win"].append(start + 2)
         row += 1
         if other and other["campaigns"]:
-            notes.append(f"{title} 略過的花費來自：{'、'.join(sorted(other['campaigns']))}")
+            notes.append(f"{title} 略過的花費來自：{'、'.join(sorted(other['campaigns']))}"
+                         f"（近{win_h}小時 {other['spend_win']:,.0f}，原日預算 {other['budget']:,.0f} 未列入上表）")
     ws.cell(row=row, column=2, value="三帳戶總花費（台幣）").font = bold
     ws.cell(row=row, column=4, value="=" + "+".join(f"D{r}" for r in tot_rows["day"])).number_format = money
     ws.cell(row=row, column=7, value="=" + "+".join(f"G{r}" for r in tot_rows["win"])).number_format = money
@@ -336,7 +345,7 @@ def main():
 
     # 終端對帳行（同 warroom.py 每次跑完印的那行）
     for mkt, title, sub_row, other, acct, fx in recon:
-        rows, oth, _, _ = build_rows(mkt, acct, fx, win_h)
+        rows, oth, _, _ = build_rows(mkt, acct, fx, win_h, data.get("budget_in_major_units", False))
         s_day = sum(r["spend_day"] for r in rows.values())
         s_win = sum(r["spend_win"] for r in rows.values())
         o_day = oth["spend_day"] if oth else 0.0

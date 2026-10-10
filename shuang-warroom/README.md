@@ -17,7 +17,7 @@ python3 shuang-warroom/build_daily.py input.json -o 日報20261010.xlsx
 | 近42小時 | 前一日整天 24h ＋ 當日 18h；截止時刻改了，標題會跟著算 |
 | 在線素材數 | effective_status=ACTIVE 的**不重複廣告名稱**數，不是廣告則數 |
 | 後台 ROAS | Meta 後台轉換金額 ÷ 花費，寫成 Excel 公式 |
-| 原日預算 | 在線活動（CBO）或組合（ABO）的 daily_budget；跨列時按該活動近42h花費比例拆 |
+| 原日預算 | 在線活動（CBO）或組合（ABO）的 daily_budget；跨列時按該活動近42h花費比例拆，近42h 花費全為 0 時改按在線素材數拆（10/5 修正） |
 | 幣別 | 全部台幣。SG 的花費、轉換金額、預算 × 25.1732；預算先除以幣別 offset（TWD 1、SGD 100） |
 | TW 五列 | 活動名含「團購」或「流量」優先自成一列，其餘依廣告名稱抓抱抱／呼吸／輕提（輕輕Ｔ屬輕提）；命中 0 或 2 個系列就往組合→活動回退，三層都判不出的不出列，金額進對帳行 |
 | HK 兩列 | 活動名含「轉換」全部併成一列，流量活動獨立 |
@@ -60,7 +60,8 @@ python3 shuang-warroom/build_daily.py input.json -o 日報20261010.xlsx
 ```
 
 - 金額都填**帳戶原幣**（SG 填 SGD），換匯由程式做。
-- `daily_budget` 填 Meta 回的原始值（最小單位），不要自己除。
+- `daily_budget` 填 Meta 回的原始值。Graph API 回的是最小單位（SGD 要除 100）；
+  **官方 Meta MCP 回的已經是元**（SG 回 `40` 就是 SGD 40），這時在最上層加 `"budget_in_major_units": true`。
 - `value_*` 是購買轉換金額（action_values 裡的 purchase／offsite_conversion.fb_pixel_purchase，取一種不要重複加）。
 - `ads` 要包含窗口內**有花費的所有廣告**（含已暫停的），以及目前在線的廣告（花費可為 0）。
 - `total_spend_*` 是帳戶層級 insights 的總花費，用來對帳。
@@ -73,3 +74,8 @@ python3 shuang-warroom/build_daily.py input.json -o 日報20261010.xlsx
 2. **在線素材數與原日預算是撈取當下的狀態**，不是 18:00 的快照。隔天補做時，若帳戶活動紀錄顯示
    18:00 之後有開關或調預算，要在 `extra_notes` 註明。
 3. HK 用的是**台幣帳戶** 2008254346613028，不是港幣帳戶。
+4. 官方 Meta MCP 的 `ads_get_ad_entities` 帶小時拆分時，一次最多 1000 列而且**不給下一頁游標**，
+   會照小時排序直接截斷（台灣帳戶 10/10 截在 16 點）。台灣要用 `campaign_id` 篩選拆成幾組分開撈，
+   每組都要確認少於 1000 列，再用帳戶層級的小時加總對一次。
+5. 後台轉換金額用 `omni_purchase_values`（Meta「購買轉換值」）。
+6. 這個 repo 是公開的：產出的 Excel 與 input.json 放在 `reports/`，已列入 .gitignore，不要推上來。
